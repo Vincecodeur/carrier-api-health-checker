@@ -1,0 +1,46 @@
+{
+  "carriers": [
+    {
+      "name": "Colissimo (La Poste - Suivi API)",
+      "url": "https://api.laposte.fr/suivi/v2/idships/xxxxx",
+      "method": "GET",
+      "expected_status": [200, 401, 403],
+      "timeout": 10
+    },
+    {
+      "name": "La Poste - Status Page",
+      "url": "https://developer.laposte.fr/status/api",
+      "method": "GET",
+      "expected_status": [200],
+      "timeout": 10
+    },
+    {
+      "name": "DHL Express (MyDHL API)",
+      "url": "https://express.api.dhl.com/mydhlapi/test/shipments",
+      "method": "GET",
+      "expected_status": [200, 401, 403],
+      "timeout": 10
+    },
+    {
+      "name": "DHL eCommerce (Parcel NL/EU)",
+      "url": "https://api-gw.dhlparcel.nl/parcel-types",
+      "method": "GET",
+      "expected_status": [200],
+      "timeout": 10
+    },
+    {
+      "name": "GLS (ShipIT REST API)",
+      "url": "https://shipit-wbm-test01.gls-group.eu:443/backend/rs/shipments",
+      "method": "GET",
+      "expected_status": [200, 401, 403],
+      "timeout": 10
+    },
+    {
+      "name": "UPS (OAuth Token endpoint)",
+      "url": "https://onlinetools.ups.com/security/v1/oauth/token",
+      "method": "GET",
+      "expected_status": [200, 400, 401, 405],
+      "timeout": 10
+    }
+  ]
+}

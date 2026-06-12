@@ -1,0 +1,23 @@
+
+# Environnement virtuel Python
+venv/
+
+# Fichiers générés par le script (résultats, pas du code source)
+output/
+logs/
+results/
+
+# Cache Python (bytecode compilé, généré automatiquement)
+__pycache__/
+*.pyc
+
+# Variables d'environnement (contiendra des clés API plus tard)
+.env
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# IDE / éditeur
+.vscode/
+*.code-workspace
