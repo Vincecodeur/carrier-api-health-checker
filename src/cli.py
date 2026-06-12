@@ -1,6 +1,6 @@
 # ============================================================================
 # FICHIER : src/cli.py
-# MODIFICATION : ajout du flag --workers
+# MODIFICATION : ajout du flag --max-latency
 # ============================================================================
 
 import argparse
@@ -23,7 +23,9 @@ examples:
   python main.py --output results/                 Export CSV to a custom folder
   python main.py --log-level DEBUG                 Show all log messages
   python main.py --workers 10                      Use 10 parallel threads
-  python main.py --workers 1                       Sequential mode (no parallelism)
+  python main.py --retries 3                       Retry failed checks up to 3 times
+  python main.py --max-latency 500                 Warn if any carrier exceeds 500ms
+  python main.py --max-latency 0                   Disable latency warnings
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -65,45 +67,39 @@ examples:
         help="Set logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: %(default)s)",
     )
 
-    # ---- NOUVEAU : --workers / -w ----
     parser.add_argument(
         "-w", "--workers",
-
-        # type=int : argparse convertit automatiquement la valeur en entier.
-        # Si l'utilisateur passe "abc" → erreur automatique : "invalid int value"
         type=int,
-
-        # default=5 : bon compromis.
-        # 5 threads suffisent pour 6 carriers (quasiment tout en parallèle).
-        # Pas trop élevé pour éviter de surcharger le réseau ou de se faire bloquer
-        # par les serveurs (rate limiting).
         default=5,
-
         metavar="N",
-
         help="Number of parallel workers/threads for health checks (default: %(default)s). "
              "Use 1 for sequential mode.",
     )
-    
-# ---- NOUVEAU : --retries / -r ----
+
     parser.add_argument(
         "-r", "--retries",
         type=int,
         default=2,
-
-        # metavar="N" : dans le --help, affiche "--retries N" au lieu de "--retries RETRIES"
         metavar="N",
-
-        # Cette valeur est le DÉFAUT GLOBAL.
-        # Un carrier peut la surcharger via le champ "retries" dans carriers.json.
-        # Priorité : JSON spécifique > CLI global > default (2)
-        #
-        # --retries 0 désactive les retries (échec immédiat au premier problème).
-        # Utile pour les tests rapides ou quand on veut détecter l'instabilité.
         help="Default number of retries for failed checks (default: %(default)s). "
              "Can be overridden per carrier in config. Use 0 for no retries.",
     )
 
+    # ---- NOUVEAU : --max-latency ----
+    parser.add_argument(
+        "--max-latency",
+        type=int,
+        # default=0 : désactivé par défaut.
+        # Les seuils sont définis dans carriers.json par carrier.
+        # Ce flag ne sert que de fallback global pour les carriers
+        # qui n'ont pas de max_latency_ms dans le JSON.
+        # 0 = pas de seuil → latency_warning sera toujours False.
+        default=0,
+        metavar="MS",
+        help="Default max latency threshold in ms (default: %(default)s = disabled). "
+             "Carriers exceeding this will be flagged. "
+             "Can be overridden per carrier in config.",
+    )
 
     args = parser.parse_args()
     return args

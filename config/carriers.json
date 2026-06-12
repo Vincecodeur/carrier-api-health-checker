@@ -6,14 +6,16 @@
       "method": "GET",
       "expected_status": [200, 401, 403],
       "timeout": 10,
-      "retries": 2
+      "retries": 2,
+      "max_latency_ms": 300
     },
     {
       "name": "La Poste - Status Page",
       "url": "https://developer.laposte.fr/status/api",
       "method": "GET",
       "expected_status": [200],
-      "timeout": 10
+      "timeout": 10,
+      "max_latency_ms": 400
     },
     {
       "name": "DHL Express (MyDHL API)",
@@ -21,14 +23,16 @@
       "method": "GET",
       "expected_status": [200, 401, 403],
       "timeout": 10,
-      "retries": 3
+      "retries": 3,
+      "max_latency_ms": 500
     },
     {
       "name": "DHL eCommerce (Parcel NL/EU)",
       "url": "https://api-gw.dhlparcel.nl/parcel-types",
       "method": "GET",
       "expected_status": [200],
-      "timeout": 10
+      "timeout": 10,
+      "max_latency_ms": 300
     },
     {
       "name": "GLS (ShipIT REST API)",
@@ -36,14 +40,16 @@
       "method": "GET",
       "expected_status": [200, 401, 403],
       "timeout": 10,
-      "retries": 3
+      "retries": 3,
+      "max_latency_ms": 400
     },
     {
       "name": "UPS (OAuth Token endpoint)",
       "url": "https://onlinetools.ups.com/security/v1/oauth/token",
       "method": "GET",
       "expected_status": [200, 400, 401, 405],
-      "timeout": 10
+      "timeout": 10,
+      "max_latency_ms": 500
     }
   ]
 }

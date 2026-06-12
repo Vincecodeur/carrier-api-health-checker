@@ -33,6 +33,10 @@ def main():
             print(f"  ⚙️  Workers:      {args.workers}")
             # NOUVEAU : affichage du nombre de retries par défaut
             print(f"  ⚙️  Retries:      {args.retries}")
+            
+# NOUVEAU : affichage du seuil de latence par défaut
+            max_lat_display = f"{args.max_latency} ms" if args.max_latency > 0 else "disabled"
+            print(f"  ⚙️  Max latency:  {max_lat_display}")
             print(f"  ⚙️  CSV export:   {'OFF' if args.no_export else 'ON → ' + args.output}")
 
         # ÉTAPE 1 : Charger la config
@@ -46,6 +50,7 @@ def main():
             verbose=args.verbose,
             workers=args.workers,
             default_retries=args.retries,
+            default_max_latency=args.max_latency,
         )
 
         # ÉTAPE 3 : Afficher le dashboard
