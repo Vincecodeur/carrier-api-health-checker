@@ -1,20 +1,22 @@
 # ============================================================================
 # FICHIER : src/display.py
-# RESPONSABILITÉ : affichage des résultats dans le terminal
-# CONTIENT : display_dashboard()
-# MODIFICATION : ajout du mode verbose (latence moyenne, seuils de performance)
+# RESPONSABILITÉ : affichage du dashboard
+# MODIFICATION : le mode verbose affiche maintenant les détails complets
+#                (expected status, verdict, perf) — triés dans l'ordre config
 # ============================================================================
 
 from datetime import datetime
 
 
-def display_dashboard(results, verbose=False):
+def display_dashboard(results, verbose=False, total_time_ms=None, workers=None):
     """
     Affiche un dashboard formaté dans le terminal.
 
     Paramètres :
-        results (list)  : liste de dicts de résultats
-        verbose (bool)  : si True, affiche des métriques supplémentaires
+        results (list)          : liste de dicts de résultats (triés dans l'ordre config)
+        verbose (bool)          : mode détaillé — affiche expected status, verdict, perf
+        total_time_ms (float)   : temps total d'exécution en ms
+        workers (int)           : nombre de threads utilisés
     """
 
     print("\n" + "=" * 80)
@@ -36,31 +38,67 @@ def display_dashboard(results, verbose=False):
             status_text = f"HTTP {r['status_code']} (unexpected)"
             time_text = f"{r['response_time_ms']} ms"
 
+        # ---- AFFICHAGE DE BASE (toujours) ----
         print(f"\n  {status_icon} {r['name']}")
         print(f"     URL:      {r['url']}")
         print(f"     Status:   {status_text}")
         print(f"     Latency:  {time_text}")
 
-        # ---- NOUVEAU : indicateur de performance en mode verbose ----
-        # On catégorise le temps de réponse pour donner un repère visuel.
-        # Ces seuils sont des conventions courantes en monitoring d'API :
-        #   < 200ms  = rapide (très bon)
-        #   < 500ms  = normal (acceptable)
-        #   < 1000ms = lent (à surveiller)
-        #   ≥ 1000ms = très lent (problème probable)
-        if verbose and r["response_time_ms"] is not None:
-            latency = r["response_time_ms"]
-            if latency < 200:
-                perf = "⚡ Fast"
-            elif latency < 500:
-                perf = "✅ Normal"
-            elif latency < 1000:
-                perf = "⚠️  Slow"
-            else:
-                perf = "🐌 Very slow"
-            print(f"     Perf:     {perf} ({latency} ms)")
+        # ---- AFFICHAGE VERBOSE (détails complets) ----
+        #
+        # AVANT : le verbose n'ajoutait que l'indicateur de perf (Fast/Normal/Slow).
+        #         Les infos de verdict et expected status étaient dans checker.py
+        #         → affichées dans le désordre en mode parallèle.
+        #
+        # APRÈS : tout le détail est ICI, dans le dashboard, qui est DÉJÀ TRIÉ
+        #         dans l'ordre de la config. Plus de désordre.
+        #
+        # Infos ajoutées en verbose :
+        #   - Expected : les status codes considérés sains pour ce carrier
+        #   - Verdict  : HEALTHY/UNHEALTHY avec l'explication (code ∈ ou ∉ expected)
+        #   - Perf     : indicateur de performance basé sur la latence
+        if verbose:
 
-    # Résumé
+            # ---- Expected status codes ----
+            # On récupère cette info depuis le dict result.
+            # PROBLÈME : le dict result actuel ne contient pas expected_status.
+            # Il contient name, url, status_code, response_time_ms, is_healthy, error.
+            #
+            # SOLUTION : on a deux options :
+            #   a) Ajouter expected_status au dict result dans checker.py
+            #   b) Recalculer ici
+            #
+            # On choisit (a) car c'est plus propre : le result contient TOUTE l'info
+            # nécessaire pour l'affichage, sans dépendance externe.
+            # → Voir la modification dans checker.py : result["expected_status"] ajouté.
+            expected = r.get("expected_status", [])
+            if expected:
+                print(f"     Expected: {expected}")
+
+            # ---- Verdict explicite ----
+            # Explique POURQUOI le carrier est healthy ou non.
+            # C'est pédagogique pour l'utilisateur qui découvre le health checking.
+            if r["error"]:
+                print(f"     Verdict:  ❌ ERROR — no HTTP response received")
+            elif r["is_healthy"]:
+                print(f"     Verdict:  ✅ HEALTHY ({r['status_code']} ∈ {expected})")
+            else:
+                print(f"     Verdict:  ⚠️  UNHEALTHY ({r['status_code']} ∉ {expected})")
+
+            # ---- Indicateur de performance ----
+            if r["response_time_ms"] is not None:
+                latency = r["response_time_ms"]
+                if latency < 200:
+                    perf = "⚡ Fast"
+                elif latency < 500:
+                    perf = "✅ Normal"
+                elif latency < 1000:
+                    perf = "⚠️  Slow"
+                else:
+                    perf = "🐌 Very slow"
+                print(f"     Perf:     {perf}")
+
+    # ---- RÉSUMÉ ----
     healthy = sum(1 for r in results if r["is_healthy"])
     total = len(results)
     errors = sum(1 for r in results if r["error"])
@@ -68,32 +106,30 @@ def display_dashboard(results, verbose=False):
     print("\n" + "-" * 80)
     print(f"  📊 Summary: {healthy}/{total} carriers healthy")
 
-    # ---- NOUVEAU : métriques supplémentaires en mode verbose ----
+    if total_time_ms is not None:
+        individual_sum = sum(
+            r["response_time_ms"] for r in results
+            if r["response_time_ms"] is not None
+        )
+        individual_sum = round(individual_sum, 2)
+
+        if total_time_ms > 0:
+            speedup = round(individual_sum / total_time_ms, 1)
+        else:
+            speedup = 0
+
+        mode = f"parallel ({workers} workers)" if workers and workers > 1 else "sequential"
+        print(f"  ⏱️  Total time: {total_time_ms} ms ({mode})")
+        print(f"  📈 Sum of individual latencies: {individual_sum} ms — speedup: {speedup}x")
+
     if verbose:
-        # Comptage des erreurs réseau (timeout, connexion...)
         print(f"  🔴 Errors: {errors}")
 
-        # Calcul de la latence moyenne sur les checks réussis (sans erreur).
-        #
-        # Décomposition de la ligne :
-        #   [r["response_time_ms"] for r in results if r["response_time_ms"] is not None]
-        #
-        #   C'est une LIST COMPREHENSION — un idiome Python très puissant :
-        #     - for r in results              → itère sur chaque résultat
-        #     - if r["response_time_ms"]...   → filtre : ne garde que ceux avec un temps
-        #     - r["response_time_ms"]         → extrait la valeur pour chaque élément filtré
-        #
-        #   Résultat : une liste de floats, ex: [133.48, 271.64, 388.67, 112.03, 95.66, 274.44]
         latencies = [r["response_time_ms"] for r in results if r["response_time_ms"] is not None]
-
         if latencies:
-            # sum(latencies) / len(latencies) = moyenne arithmétique
             avg = round(sum(latencies) / len(latencies), 2)
-
-            # min() et max() retournent les valeurs extrêmes d'une liste
             fastest = round(min(latencies), 2)
             slowest = round(max(latencies), 2)
-
             print(f"  ⏱️  Avg latency: {avg} ms (fastest: {fastest} ms / slowest: {slowest} ms)")
 
     print("=" * 80 + "\n")
