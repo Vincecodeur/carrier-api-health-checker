@@ -3,7 +3,6 @@
 # RESPONSABILITÉ : tester le module src/export.py (CSV et JSON)
 # ============================================================================
 
-import pytest
 import csv
 import json
 import os
@@ -36,6 +35,8 @@ def test_export_csv_content(tmp_path, sample_result_healthy):
     results = [sample_result_healthy]
     filepath = export_to_csv(results, output_dir=str(tmp_path))
 
+    assert filepath is not None, "filepath ne doit pas être None"
+
     with open(filepath, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
@@ -57,9 +58,11 @@ def test_export_csv_fieldnames_match_result_keys(tmp_path, sample_result_healthy
     results = [sample_result_healthy]
     filepath = export_to_csv(results, output_dir=str(tmp_path))
 
+    assert filepath is not None, "filepath ne doit pas être None"
+
     with open(filepath, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
-        csv_fieldnames = set(reader.fieldnames)
+        csv_fieldnames = set(reader.fieldnames or [])
 
     result_keys = set(sample_result_healthy.keys())
 
@@ -77,6 +80,8 @@ def test_export_multiple_results(tmp_path, sample_result_healthy, sample_result_
 
     results = [sample_result_healthy, sample_result_unhealthy, sample_result_error]
     filepath = export_to_csv(results, output_dir=str(tmp_path))
+
+    assert filepath is not None, "filepath ne doit pas être None"
 
     with open(filepath, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -126,6 +131,8 @@ def test_export_json_content(tmp_path, sample_result_healthy):
     results = [sample_result_healthy]
     filepath = export_to_json(results, output_dir=str(tmp_path))
 
+    assert filepath is not None, "filepath ne doit pas être None"
+
     with open(filepath, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -156,6 +163,8 @@ def test_export_json_multiple_results(
 
     results = [sample_result_healthy, sample_result_unhealthy, sample_result_error]
     filepath = export_to_json(results, output_dir=str(tmp_path))
+
+    assert filepath is not None, "filepath ne doit pas être None"
 
     with open(filepath, "r", encoding="utf-8") as f:
         data = json.load(f)
