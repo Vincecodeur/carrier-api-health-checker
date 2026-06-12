@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 logger = logging.getLogger(__name__)
 
 
-def check_carrier(carrier, default_retries=2, default_max_latency=0):
+def check_carrier(carrier: dict, default_retries: int = 2, default_max_latency: int = 0) -> dict:
     """
     Envoie une requête HTTP à l'endpoint d'un transporteur et analyse la réponse.
     En cas d'échec, retente automatiquement avec un délai croissant (backoff).
@@ -140,7 +140,15 @@ def check_carrier(carrier, default_retries=2, default_max_latency=0):
     return result
 
 
-def run_health_checks(carriers, verbose=False, workers=5, default_retries=2, default_max_latency=0):
+
+def run_health_checks(
+    carriers: list[dict],
+    verbose: bool = False,
+    workers: int = 5,
+    default_retries: int = 2,
+    default_max_latency: int = 0,
+) -> tuple[list[dict], float]:
+
     """
     Exécute le health check sur tous les transporteurs.
 

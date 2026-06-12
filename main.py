@@ -13,7 +13,7 @@ from src.export import export_to_csv
 import logging
 
 
-def main():
+def main()-> None:
     """
     Fonction principale — orchestre le pipeline complet.
     """

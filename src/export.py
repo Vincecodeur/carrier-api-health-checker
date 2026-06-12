@@ -13,7 +13,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def export_to_csv(results, output_dir="output"):
+def export_to_csv(results: list[dict], output_dir: str = "output") -> str | None:
     """
     Exporte les résultats du health check dans un fichier CSV horodaté.
     """

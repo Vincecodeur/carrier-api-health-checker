@@ -7,7 +7,14 @@
 from datetime import datetime
 
 
-def display_dashboard(results, verbose=False, total_time_ms=None, workers=None):
+
+def display_dashboard(
+    results: list[dict],
+    verbose: bool = False,
+    total_time_ms: float | None = None,
+    workers: int | None = None,
+) -> None:
+
     """
     Affiche un dashboard formaté dans le terminal.
     """

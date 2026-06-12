@@ -26,7 +26,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def load_config(filepath):
+def load_config(filepath: str) -> list[dict]:
     """
     Charge la configuration des transporteurs depuis un fichier JSON.
 

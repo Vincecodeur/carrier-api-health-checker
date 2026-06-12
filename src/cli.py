@@ -6,7 +6,7 @@
 import argparse
 
 
-def parse_args():
+def parse_args()-> argparse.Namespace:
     """
     Définit et parse les arguments de ligne de commande.
     """

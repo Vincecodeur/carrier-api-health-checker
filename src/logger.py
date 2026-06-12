@@ -34,7 +34,7 @@ import os
 from datetime import datetime
 
 
-def setup_logger(log_level="INFO"):
+def setup_logger(log_level: str = "INFO") -> logging.Logger:
     """
     Configure le système de logging pour tout le projet.
 
