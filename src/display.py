@@ -1,8 +1,6 @@
 # ============================================================================
 # FICHIER : src/display.py
-# RESPONSABILITÉ : affichage du dashboard
-# MODIFICATION : le mode verbose affiche maintenant les détails complets
-#                (expected status, verdict, perf) — triés dans l'ordre config
+# MODIFICATION : affichage du nombre de tentatives en mode verbose
 # ============================================================================
 
 from datetime import datetime
@@ -11,12 +9,6 @@ from datetime import datetime
 def display_dashboard(results, verbose=False, total_time_ms=None, workers=None):
     """
     Affiche un dashboard formaté dans le terminal.
-
-    Paramètres :
-        results (list)          : liste de dicts de résultats (triés dans l'ordre config)
-        verbose (bool)          : mode détaillé — affiche expected status, verdict, perf
-        total_time_ms (float)   : temps total d'exécution en ms
-        workers (int)           : nombre de threads utilisés
     """
 
     print("\n" + "=" * 80)
@@ -38,46 +30,28 @@ def display_dashboard(results, verbose=False, total_time_ms=None, workers=None):
             status_text = f"HTTP {r['status_code']} (unexpected)"
             time_text = f"{r['response_time_ms']} ms"
 
-        # ---- AFFICHAGE DE BASE (toujours) ----
+        # Affichage de base
         print(f"\n  {status_icon} {r['name']}")
         print(f"     URL:      {r['url']}")
         print(f"     Status:   {status_text}")
         print(f"     Latency:  {time_text}")
 
-        # ---- AFFICHAGE VERBOSE (détails complets) ----
+        # ---- NOUVEAU : affichage du nombre de tentatives ----
         #
-        # AVANT : le verbose n'ajoutait que l'indicateur de perf (Fast/Normal/Slow).
-        #         Les infos de verdict et expected status étaient dans checker.py
-        #         → affichées dans le désordre en mode parallèle.
-        #
-        # APRÈS : tout le détail est ICI, dans le dashboard, qui est DÉJÀ TRIÉ
-        #         dans l'ordre de la config. Plus de désordre.
-        #
-        # Infos ajoutées en verbose :
-        #   - Expected : les status codes considérés sains pour ce carrier
-        #   - Verdict  : HEALTHY/UNHEALTHY avec l'explication (code ∈ ou ∉ expected)
-        #   - Perf     : indicateur de performance basé sur la latence
-        if verbose:
+        # On n'affiche le nombre de tentatives QUE si un retry a eu lieu (attempts > 1).
+        # Si tout passe du premier coup, on ne pollue pas l'affichage.
+        # Ce champ est visible même hors verbose car c'est une info opérationnelle importante :
+        # si un carrier nécessite 3 tentatives, c'est un signal d'instabilité.
+        attempts = r.get("attempts", 1)
+        if attempts > 1:
+            print(f"     Attempts: {attempts} (retried {attempts - 1}x)")
 
-            # ---- Expected status codes ----
-            # On récupère cette info depuis le dict result.
-            # PROBLÈME : le dict result actuel ne contient pas expected_status.
-            # Il contient name, url, status_code, response_time_ms, is_healthy, error.
-            #
-            # SOLUTION : on a deux options :
-            #   a) Ajouter expected_status au dict result dans checker.py
-            #   b) Recalculer ici
-            #
-            # On choisit (a) car c'est plus propre : le result contient TOUTE l'info
-            # nécessaire pour l'affichage, sans dépendance externe.
-            # → Voir la modification dans checker.py : result["expected_status"] ajouté.
+        # Affichage verbose
+        if verbose:
             expected = r.get("expected_status", [])
             if expected:
                 print(f"     Expected: {expected}")
 
-            # ---- Verdict explicite ----
-            # Explique POURQUOI le carrier est healthy ou non.
-            # C'est pédagogique pour l'utilisateur qui découvre le health checking.
             if r["error"]:
                 print(f"     Verdict:  ❌ ERROR — no HTTP response received")
             elif r["is_healthy"]:
@@ -85,7 +59,6 @@ def display_dashboard(results, verbose=False, total_time_ms=None, workers=None):
             else:
                 print(f"     Verdict:  ⚠️  UNHEALTHY ({r['status_code']} ∉ {expected})")
 
-            # ---- Indicateur de performance ----
             if r["response_time_ms"] is not None:
                 latency = r["response_time_ms"]
                 if latency < 200:
@@ -98,10 +71,13 @@ def display_dashboard(results, verbose=False, total_time_ms=None, workers=None):
                     perf = "🐌 Very slow"
                 print(f"     Perf:     {perf}")
 
-    # ---- RÉSUMÉ ----
+    # Résumé
     healthy = sum(1 for r in results if r["is_healthy"])
     total = len(results)
     errors = sum(1 for r in results if r["error"])
+
+    # ---- NOUVEAU : compteur de retries dans le résumé ----
+    total_retries = sum(max(0, r.get("attempts", 1) - 1) for r in results)
 
     print("\n" + "-" * 80)
     print(f"  📊 Summary: {healthy}/{total} carriers healthy")
@@ -121,6 +97,10 @@ def display_dashboard(results, verbose=False, total_time_ms=None, workers=None):
         mode = f"parallel ({workers} workers)" if workers and workers > 1 else "sequential"
         print(f"  ⏱️  Total time: {total_time_ms} ms ({mode})")
         print(f"  📈 Sum of individual latencies: {individual_sum} ms — speedup: {speedup}x")
+
+    # Affiche le nombre total de retries s'il y en a eu
+    if total_retries > 0:
+        print(f"  🔄 Total retries: {total_retries}")
 
     if verbose:
         print(f"  🔴 Errors: {errors}")

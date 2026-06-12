@@ -5,7 +5,8 @@
       "url": "https://api.laposte.fr/suivi/v2/idships/xxxxx",
       "method": "GET",
       "expected_status": [200, 401, 403],
-      "timeout": 10
+      "timeout": 10,
+      "retries": 2
     },
     {
       "name": "La Poste - Status Page",
@@ -19,7 +20,8 @@
       "url": "https://express.api.dhl.com/mydhlapi/test/shipments",
       "method": "GET",
       "expected_status": [200, 401, 403],
-      "timeout": 10
+      "timeout": 10,
+      "retries": 3
     },
     {
       "name": "DHL eCommerce (Parcel NL/EU)",
@@ -33,7 +35,8 @@
       "url": "https://shipit-wbm-test01.gls-group.eu:443/backend/rs/shipments",
       "method": "GET",
       "expected_status": [200, 401, 403],
-      "timeout": 10
+      "timeout": 10,
+      "retries": 3
     },
     {
       "name": "UPS (OAuth Token endpoint)",

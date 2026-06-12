@@ -84,6 +84,26 @@ examples:
         help="Number of parallel workers/threads for health checks (default: %(default)s). "
              "Use 1 for sequential mode.",
     )
+    
+# ---- NOUVEAU : --retries / -r ----
+    parser.add_argument(
+        "-r", "--retries",
+        type=int,
+        default=2,
+
+        # metavar="N" : dans le --help, affiche "--retries N" au lieu de "--retries RETRIES"
+        metavar="N",
+
+        # Cette valeur est le DÉFAUT GLOBAL.
+        # Un carrier peut la surcharger via le champ "retries" dans carriers.json.
+        # Priorité : JSON spécifique > CLI global > default (2)
+        #
+        # --retries 0 désactive les retries (échec immédiat au premier problème).
+        # Utile pour les tests rapides ou quand on veut détecter l'instabilité.
+        help="Default number of retries for failed checks (default: %(default)s). "
+             "Can be overridden per carrier in config. Use 0 for no retries.",
+    )
+
 
     args = parser.parse_args()
     return args

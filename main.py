@@ -1,6 +1,6 @@
 # ============================================================================
 # FICHIER : main.py
-# MODIFICATION : passage de workers + adaptation au tuple de retour
+# MODIFICATION : passage de args.retries à run_health_checks()
 # ============================================================================
 
 from src.logger import setup_logger
@@ -31,6 +31,8 @@ def main():
             print(f"  ⚙️  Verbose mode: ON")
             print(f"  ⚙️  Log level:    {args.log_level}")
             print(f"  ⚙️  Workers:      {args.workers}")
+            # NOUVEAU : affichage du nombre de retries par défaut
+            print(f"  ⚙️  Retries:      {args.retries}")
             print(f"  ⚙️  CSV export:   {'OFF' if args.no_export else 'ON → ' + args.output}")
 
         # ÉTAPE 1 : Charger la config
@@ -38,25 +40,15 @@ def main():
         print(f"\n  📋 {len(carriers)} carriers loaded from config\n")
 
         # ÉTAPE 2 : Lancer les health checks
-        # AVANT : results = run_health_checks(carriers, verbose=args.verbose)
-        # APRÈS : on "unpack" le tuple retourné (results, total_time_ms)
-        #
-        # C'est du "tuple unpacking" :
-        #   La fonction retourne (results, total_time_ms)
-        #   On assigne chaque élément à une variable séparée en une seule ligne.
-        #   Équivalent de :
-        #     result_tuple = run_health_checks(...)
-        #     results = result_tuple[0]
-        #     total_time_ms = result_tuple[1]
+        # MODIFIÉ : on passe default_retries=args.retries
         results, total_time_ms = run_health_checks(
             carriers,
             verbose=args.verbose,
             workers=args.workers,
+            default_retries=args.retries,
         )
 
         # ÉTAPE 3 : Afficher le dashboard
-        # AVANT : display_dashboard(results, verbose=args.verbose)
-        # APRÈS : on passe aussi total_time_ms et workers pour l'affichage
         display_dashboard(
             results,
             verbose=args.verbose,

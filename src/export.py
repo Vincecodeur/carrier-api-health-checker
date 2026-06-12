@@ -28,7 +28,7 @@ def export_to_csv(results, output_dir="output"):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filepath = os.path.join(output_dir, f"health_check_{timestamp}.csv")
 
-        fieldnames = ["name", "url", "status_code", "response_time_ms", "is_healthy", "error", "expected_status"]
+        fieldnames = ["name", "url", "status_code", "response_time_ms", "is_healthy", "error", "expected_status", "attempts"]
 
         with open(filepath, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
