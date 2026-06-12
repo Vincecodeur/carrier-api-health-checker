@@ -1,7 +1,16 @@
 {
   "carriers": [
     {
-      "name": "Colissimo (La Poste - Suivi API)",
+      "name": "Colissimo SLS (La Poste - Étiquetage)",
+      "url": "https://ws.colissimo.fr/sls-ws/SlsServiceWSRest/2.0/checkGenerateLabel",
+      "method": "GET",
+      "expected_status": [200, 401, 403, 405],
+      "timeout": 10,
+      "retries": 2,
+      "max_latency_ms": 400
+    },
+    {
+      "name": "La Poste - Suivi API (Okapi)",
       "url": "https://api.laposte.fr/suivi/v2/idships/xxxxx",
       "method": "GET",
       "expected_status": [200, 401, 403],
@@ -10,7 +19,7 @@
       "max_latency_ms": 300
     },
     {
-      "name": "La Poste - Status Page",
+      "name": "La Poste - Developer Portal Status",
       "url": "https://developer.laposte.fr/status/api",
       "method": "GET",
       "expected_status": [200],
@@ -18,24 +27,25 @@
       "max_latency_ms": 400
     },
     {
-      "name": "DHL Express (MyDHL API)",
-      "url": "https://express.api.dhl.com/mydhlapi/test/shipments",
-      "method": "GET",
-      "expected_status": [200, 401, 403],
-      "timeout": 10,
-      "retries": 3,
-      "max_latency_ms": 500
-    },
-    {
-      "name": "DHL eCommerce (Parcel NL/EU)",
-      "url": "https://api-gw.dhlparcel.nl/parcel-types",
+      "name": "Chronopost (Shipping WSDL)",
+      "url": "https://ws.chronopost.fr/shipping-cxf/ShippingServiceWS?wsdl",
       "method": "GET",
       "expected_status": [200],
       "timeout": 10,
-      "max_latency_ms": 300
+      "retries": 2,
+      "max_latency_ms": 500
     },
     {
-      "name": "GLS (ShipIT REST API)",
+      "name": "DHL Express (MyDHL API - Production)",
+      "url": "https://express.api.dhl.com/mydhlapi/shipments",
+      "method": "GET",
+      "expected_status": [200, 401, 403, 405],
+      "timeout": 10,
+      "retries": 3,
+      "max_latency_ms": 600
+    },
+    {
+      "name": "GLS (ShipIT REST API - Production)",
       "url": "https://shipit-wbm-test01.gls-group.eu:443/backend/rs/shipments",
       "method": "GET",
       "expected_status": [200, 401, 403],
@@ -44,7 +54,25 @@
       "max_latency_ms": 400
     },
     {
-      "name": "UPS (OAuth Token endpoint)",
+      "name": "DPD Group (Shipping API)",
+      "url": "https://shipping.dpdgroup.com/api/v1.1/shipments",
+      "method": "GET",
+      "expected_status": [200, 401, 403],
+      "timeout": 10,
+      "retries": 2,
+      "max_latency_ms": 500
+    },
+    {
+      "name": "FedEx (OAuth Token - Production)",
+      "url": "https://apis.fedex.com/oauth/token",
+      "method": "GET",
+      "expected_status": [200, 400, 401, 405],
+      "timeout": 10,
+      "retries": 2,
+      "max_latency_ms": 700
+    },
+    {
+      "name": "UPS (OAuth Token)",
       "url": "https://onlinetools.ups.com/security/v1/oauth/token",
       "method": "GET",
       "expected_status": [200, 400, 401, 405],
