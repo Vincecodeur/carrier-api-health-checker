@@ -26,6 +26,8 @@ examples:
   python main.py --retries 3                       Retry failed checks up to 3 times
   python main.py --max-latency 500                 Warn if any carrier exceeds 500ms
   python main.py --max-latency 0                   Disable latency warnings
+  python main.py --format json                     Export results as JSON
+  python main.py --format csv                      Export results as CSV (default)
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -100,6 +102,18 @@ examples:
              "Carriers exceeding this will be flagged. "
              "Can be overridden per carrier in config.",
     )
+
+    
+# ---- NOUVEAU : --format ----
+    parser.add_argument(
+        "-f", "--format",
+        type=str,
+        default="csv",
+        choices=["csv", "json"],
+        metavar="FORMAT",
+        help="Export format: csv or json (default: %(default)s).",
+    )
+
 
     args = parser.parse_args()
     return args

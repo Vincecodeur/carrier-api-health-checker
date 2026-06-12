@@ -8,7 +8,7 @@ from src.cli import parse_args
 from src.config import load_config
 from src.checker import run_health_checks
 from src.display import display_dashboard
-from src.export import export_to_csv
+from src.export import export_to_csv, export_to_json
 
 import logging
 
@@ -26,18 +26,18 @@ def main()-> None:
         print("\n  🔧 Carrier API Health Checker v1.0")
         print("  Anchanto — Technical Partnerships")
 
+        
         if args.verbose:
             print(f"\n  ⚙️  Config file:  {args.config}")
             print(f"  ⚙️  Verbose mode: ON")
             print(f"  ⚙️  Log level:    {args.log_level}")
             print(f"  ⚙️  Workers:      {args.workers}")
-            # NOUVEAU : affichage du nombre de retries par défaut
             print(f"  ⚙️  Retries:      {args.retries}")
-            
-# NOUVEAU : affichage du seuil de latence par défaut
             max_lat_display = f"{args.max_latency} ms" if args.max_latency > 0 else "disabled"
             print(f"  ⚙️  Max latency:  {max_lat_display}")
-            print(f"  ⚙️  CSV export:   {'OFF' if args.no_export else 'ON → ' + args.output}")
+            print(f"  ⚙️  Export:       {'OFF' if args.no_export else f'ON → {args.output} ({args.format})'}")
+
+
 
         # ÉTAPE 1 : Charger la config
         carriers = load_config(args.config)
@@ -63,7 +63,10 @@ def main()-> None:
 
         # ÉTAPE 4 : Exporter en CSV (conditionnel)
         if not args.no_export:
-            export_to_csv(results, output_dir=args.output)
+            if args.format == "json":
+                export_to_json(results, output_dir=args.output)
+            else:
+                export_to_csv(results, output_dir=args.output)
         else:
             print("  ⏭️  CSV export skipped (--no-export flag)")
 

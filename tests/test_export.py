@@ -1,12 +1,18 @@
 # ============================================================================
 # FICHIER : tests/test_export.py
-# RESPONSABILITÉ : tester le module src/export.py
+# RESPONSABILITÉ : tester le module src/export.py (CSV et JSON)
 # ============================================================================
 
 import pytest
 import csv
+import json
 import os
-from src.export import export_to_csv
+from src.export import export_to_csv, export_to_json
+
+
+# ============================================================================
+# Tests pour export_to_csv()
+# ============================================================================
 
 
 def test_export_creates_csv_file(tmp_path, sample_result_healthy):
@@ -30,7 +36,6 @@ def test_export_csv_content(tmp_path, sample_result_healthy):
     results = [sample_result_healthy]
     filepath = export_to_csv(results, output_dir=str(tmp_path))
 
-    # Lire le CSV et vérifier le contenu
     with open(filepath, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
@@ -80,14 +85,92 @@ def test_export_multiple_results(tmp_path, sample_result_healthy, sample_result_
     assert len(rows) == 3
 
 
-def test_export_returns_none_on_permission_error(tmp_path):
+def test_export_csv_returns_none_on_permission_error(tmp_path):
     """
     Test : si le dossier est inaccessible, retourne None sans crash.
     """
 
-    # On passe un chemin invalide qui provoquera une erreur
     result = export_to_csv([], output_dir="/root/impossible_path_12345")
 
-    # Sur Windows ce chemin n'existera pas mais makedirs pourrait le créer
-    # On vérifie au moins que la fonction ne crash pas
+    assert result is None or isinstance(result, str)
+
+
+# ============================================================================
+# Tests pour export_to_json()
+# ============================================================================
+
+
+def test_export_json_creates_file(tmp_path, sample_result_healthy):
+    """
+    Test : export_to_json crée bien un fichier .json.
+    """
+
+    results = [sample_result_healthy]
+    filepath = export_to_json(results, output_dir=str(tmp_path))
+
+    assert filepath is not None
+    assert os.path.exists(filepath)
+    assert filepath.endswith(".json")
+
+
+def test_export_json_content(tmp_path, sample_result_healthy):
+    """
+    Test : le contenu du JSON est correct et conserve les types.
+
+    C'est l'avantage principal du JSON sur le CSV :
+    - status_code est un int (200), pas un string ("200")
+    - is_healthy est un bool (true), pas un string ("True")
+    - error est null, pas un string vide
+    """
+
+    results = [sample_result_healthy]
+    filepath = export_to_json(results, output_dir=str(tmp_path))
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Vérifier les métadonnées
+    assert "timestamp" in data
+    assert data["total_carriers"] == 1
+    assert data["healthy"] == 1
+    assert data["errors"] == 0
+
+    # Vérifier le contenu des résultats
+    assert len(data["results"]) == 1
+    result = data["results"][0]
+
+    # Types conservés (contrairement au CSV)
+    assert result["name"] == "Test Carrier"
+    assert result["status_code"] == 200        # int, pas "200"
+    assert result["is_healthy"] is True         # bool, pas "True"
+    assert result["error"] is None              # null, pas ""
+    assert result["response_time_ms"] == 150.0  # float, pas "150.0"
+
+
+def test_export_json_multiple_results(
+    tmp_path, sample_result_healthy, sample_result_unhealthy, sample_result_error
+):
+    """
+    Test : export de 3 résultats avec comptages corrects dans les métadonnées.
+    """
+
+    results = [sample_result_healthy, sample_result_unhealthy, sample_result_error]
+    filepath = export_to_json(results, output_dir=str(tmp_path))
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert data["total_carriers"] == 3
+    assert data["healthy"] == 1       # sample_result_healthy
+    assert data["unhealthy"] == 1     # sample_result_unhealthy (is_healthy=False, error=None)
+    assert data["errors"] == 1        # sample_result_error (error="TIMEOUT")
+    assert len(data["results"]) == 3
+
+
+def test_export_json_returns_none_on_error(tmp_path):
+    """
+    Test : chemin invalide → retourne None sans crash.
+    """
+
+    result = export_to_json([], output_dir="/root/impossible_path_12345")
     assert result is None or isinstance(result, str)

@@ -12,12 +12,7 @@ class TestParseArgs:
 
     @patch("sys.argv", ["main.py"])
     def test_default_values(self):
-        """
-        Test : sans arguments, les valeurs par défaut sont correctes.
-
-        @patch("sys.argv", [...]) remplace la liste des arguments CLI.
-        "main.py" simule le nom du script (toujours le premier élément).
-        """
+        """Sans arguments, les valeurs par défaut sont correctes."""
 
         args = parse_args()
 
@@ -29,12 +24,11 @@ class TestParseArgs:
         assert args.workers == 5
         assert args.retries == 2
         assert args.max_latency == 0
+        assert args.format == "csv"
 
     @patch("sys.argv", ["main.py", "--verbose", "--no-export"])
     def test_boolean_flags(self):
-        """
-        Test : les flags booléens (store_true) fonctionnent.
-        """
+        """Les flags booléens (store_true) fonctionnent."""
 
         args = parse_args()
 
@@ -43,9 +37,7 @@ class TestParseArgs:
 
     @patch("sys.argv", ["main.py", "--workers", "10", "--retries", "3"])
     def test_integer_arguments(self):
-        """
-        Test : les arguments entiers sont correctement parsés.
-        """
+        """Les arguments entiers sont correctement parsés."""
 
         args = parse_args()
 
@@ -54,28 +46,21 @@ class TestParseArgs:
 
     @patch("sys.argv", ["main.py", "--log-level", "DEBUG"])
     def test_log_level_choices(self):
-        """
-        Test : --log-level accepte les valeurs autorisées.
-        """
+        """--log-level accepte les valeurs autorisées."""
 
         args = parse_args()
         assert args.log_level == "DEBUG"
 
     @patch("sys.argv", ["main.py", "--log-level", "INVALID"])
     def test_invalid_log_level_exits(self):
-        """
-        Test : une valeur invalide pour --log-level → SystemExit.
-        argparse lève SystemExit automatiquement pour les choices invalides.
-        """
+        """Une valeur invalide pour --log-level → SystemExit."""
 
         with pytest.raises(SystemExit):
             parse_args()
 
     @patch("sys.argv", ["main.py", "-v", "-c", "custom.json", "-w", "3", "-r", "1"])
     def test_short_flags(self):
-        """
-        Test : les raccourcis (-v, -c, -w, -r) fonctionnent.
-        """
+        """Les raccourcis (-v, -c, -w, -r) fonctionnent."""
 
         args = parse_args()
 
@@ -86,9 +71,32 @@ class TestParseArgs:
 
     @patch("sys.argv", ["main.py", "--max-latency", "500"])
     def test_max_latency(self):
-        """
-        Test : --max-latency est correctement parsé.
-        """
+        """--max-latency est correctement parsé."""
 
         args = parse_args()
         assert args.max_latency == 500
+
+    # ------------------------------------------------------------------
+    # NOUVEAU — Tests pour --format
+    # ------------------------------------------------------------------
+
+    @patch("sys.argv", ["main.py", "--format", "json"])
+    def test_format_json(self):
+        """--format json est correctement parsé."""
+
+        args = parse_args()
+        assert args.format == "json"
+
+    @patch("sys.argv", ["main.py", "-f", "json"])
+    def test_format_short_flag(self):
+        """Le raccourci -f fonctionne."""
+
+        args = parse_args()
+        assert args.format == "json"
+
+    @patch("sys.argv", ["main.py", "--format", "xml"])
+    def test_invalid_format_exits(self):
+        """--format xml (invalide) → SystemExit."""
+
+        with pytest.raises(SystemExit):
+            parse_args()
