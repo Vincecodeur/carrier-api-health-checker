@@ -109,10 +109,10 @@ examples:
     parser.add_argument(
         "-f", "--format",
         type=str,
-        default="csv",
+        default="json",
         choices=["csv", "json", "html"],
         metavar="FORMAT",
-        help="Export format: csv or json (default: %(default)s).",
+        help="Export format: csv or json or html (default: %(default)s).",
     )
 
 

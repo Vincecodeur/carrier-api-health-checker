@@ -24,7 +24,7 @@ class TestParseArgs:
         assert args.workers == 5
         assert args.retries == 2
         assert args.max_latency == 0
-        assert args.format == "csv"
+        assert args.format == "json"
 
     @patch("sys.argv", ["main.py", "--verbose", "--no-export"])
     def test_boolean_flags(self):

@@ -7,8 +7,11 @@ from src.logger import setup_logger
 from src.cli import parse_args
 from src.config import load_config
 from src.checker import run_health_checks
-from src.display import display_dashboard
+from src.display import display_dashboard, display_changes
 from src.export import export_to_csv, export_to_json, export_to_html
+from src.compare import find_previous_run, compare_results
+
+
 
 import logging
 
@@ -61,34 +64,47 @@ def main()-> None:
             workers=args.workers,
         )
 
-        # ÉTAPE 4 : Exporter en CSV (conditionnel)
+
+# ÉTAPE 4 : Exporter (conditionnel)
         if not args.no_export:
             if args.format == "json":
-                export_to_json(results, output_dir=args.output)
+                exported_file = export_to_json(results, output_dir=args.output)
             elif args.format == "html":
-                export_to_html(results, output_dir=args.output)
+                exported_file = export_to_html(results, output_dir=args.output)
             else:
-                export_to_csv(results, output_dir=args.output)
+                exported_file = export_to_csv(results, output_dir=args.output)
         else:
-            print("  ⏭️  CSV export skipped (--no-export flag)")
+            exported_file = None
+            print("  ⏭️  Export skipped (--no-export flag)")
 
-         
- # ÉTAPE 5 : Exit code conditionnel
+        # ÉTAPE 4b : Comparaison avec le run précédent
         #
-        # On vérifie si au moins un carrier est unhealthy ou en erreur.
-        # Si oui → exit code 1 (échec).
-        # Si tous sont healthy → exit code 0 (succès, implicite).
+        # On cherche le dernier fichier JSON dans output/.
+        # Si on vient d'exporter en JSON, on exclut ce fichier
+        # pour ne pas comparer le run avec lui-même.
         #
-        # Pourquoi ici et pas dans checker.py ?
-        # Parce que l'exit code est une décision de l'ORCHESTRATEUR (main),
-        # pas du module de vérification. checker.py produit des données,
-        # main.py décide quoi en faire.
+        # La comparaison fonctionne QUEL QUE SOIT le format d'export actuel :
+        # même avec --format csv ou --format html, on peut comparer
+        # avec un ancien fichier JSON s'il existe.
+        previous_run = find_previous_run(
+            output_dir=args.output,
+            exclude_file=exported_file if args.format == "json" else None,
+        )
+
+        if previous_run and "results" in previous_run:
+            changes = compare_results(previous_run["results"], results)
+            display_changes(changes)
+        else:
+            print("\n  ℹ️  No previous JSON run found — skipping comparison")
+
+        # ÉTAPE 5 : Exit code conditionnel
         unhealthy_count = sum(1 for r in results if not r["is_healthy"])
         error_count = sum(1 for r in results if r["error"])
 
         if unhealthy_count > 0 or error_count > 0:
             print(f"\n  ❌ {unhealthy_count + error_count} carrier(s) en échec — exit code 1")
             raise SystemExit(1)
+
    
 
     except SystemExit:

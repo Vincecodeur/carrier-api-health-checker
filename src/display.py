@@ -144,3 +144,48 @@ def display_dashboard(
             print(f"  ⏱️  Avg latency: {avg} ms (fastest: {fastest} ms / slowest: {slowest} ms)")
 
     print("=" * 80 + "\n")
+
+
+def display_changes(changes: list[dict]) -> None:
+    """
+    Affiche les changements détectés entre le run précédent et le run actuel.
+
+    Args:
+        changes: Liste de dicts changements retournés par compare_results().
+
+    Returns:
+        None (affichage uniquement).
+    """
+
+    if not changes:
+        print("\n  ✅ No changes since last run")
+        return
+
+    print("\n" + "=" * 80)
+    print("  📊 CHANGES SINCE LAST RUN")
+    print("=" * 80)
+
+    # Icônes et couleurs par type de changement
+    icons = {
+        "NEW_DOWN": "🔻",
+        "RECOVERED": "🔺",
+        "DEGRADED": "📈",
+        "IMPROVED": "📉",
+        "NEW": "🆕",
+        "REMOVED": "❌",
+    }
+
+    for change in changes:
+        icon = icons.get(change["type"], "❓")
+        print(f"\n  {icon} {change['type']} — {change['carrier']}")
+        print(f"     {change['details']}")
+
+    # Résumé
+    type_counts = {}
+    for change in changes:
+        t = change["type"]
+        type_counts[t] = type_counts.get(t, 0) + 1
+
+    summary_parts = [f"{icons.get(t, '?')} {t}: {count}" for t, count in type_counts.items()]
+    print(f"\n  {'  |  '.join(summary_parts)}")
+    print("=" * 80)
