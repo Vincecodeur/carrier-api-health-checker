@@ -100,3 +100,14 @@ class TestParseArgs:
 
         with pytest.raises(SystemExit):
             parse_args()
+
+# NOUVEAU — test pour --format html
+    @patch("sys.argv", ["main.py", "--format", "html"])
+    def test_format_html(self):
+        """--format html est correctement parsé."""
+
+        args = parse_args()
+        assert args.format == "html"
+
+
+    

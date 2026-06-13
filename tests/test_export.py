@@ -6,7 +6,7 @@
 import csv
 import json
 import os
-from src.export import export_to_csv, export_to_json
+from src.export import export_to_csv, export_to_json, export_to_html
 
 
 # ============================================================================
@@ -182,4 +182,49 @@ def test_export_json_returns_none_on_error(tmp_path):
     """
 
     result = export_to_json([], output_dir="/root/impossible_path_12345")
+    assert result is None or isinstance(result, str)
+
+# ============================================================================
+# Tests pour export_to_html()
+# ============================================================================
+
+
+def test_export_html_creates_file(tmp_path, sample_result_healthy):
+    """
+    Test : export_to_html crée bien un fichier .html.
+    """
+
+    results = [sample_result_healthy]
+    filepath = export_to_html(results, output_dir=str(tmp_path))
+
+    assert filepath is not None
+    assert os.path.exists(filepath)
+    assert filepath.endswith(".html")
+
+
+def test_export_html_contains_carrier_name(tmp_path, sample_result_healthy):
+    """
+    Test : le HTML contient le nom du carrier et les éléments structurels.
+    """
+
+    results = [sample_result_healthy]
+    filepath = export_to_html(results, output_dir=str(tmp_path))
+
+    assert filepath is not None
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    assert "Test Carrier" in content
+    assert "Carrier API Health Dashboard" in content
+    assert "<table>" in content
+    assert "🟢" in content
+
+
+def test_export_html_returns_none_on_error(tmp_path):
+    """
+    Test : chemin invalide → retourne None sans crash.
+    """
+
+    result = export_to_html([], output_dir="/root/impossible_path_12345")
     assert result is None or isinstance(result, str)

@@ -8,7 +8,7 @@ from src.cli import parse_args
 from src.config import load_config
 from src.checker import run_health_checks
 from src.display import display_dashboard
-from src.export import export_to_csv, export_to_json
+from src.export import export_to_csv, export_to_json, export_to_html
 
 import logging
 
@@ -65,6 +65,8 @@ def main()-> None:
         if not args.no_export:
             if args.format == "json":
                 export_to_json(results, output_dir=args.output)
+            elif args.format == "html":
+                export_to_html(results, output_dir=args.output)
             else:
                 export_to_csv(results, output_dir=args.output)
         else:
