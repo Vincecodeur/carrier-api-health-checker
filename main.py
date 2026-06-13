@@ -70,6 +70,25 @@ def main()-> None:
         else:
             print("  ⏭️  CSV export skipped (--no-export flag)")
 
+         
+ # ÉTAPE 5 : Exit code conditionnel
+        #
+        # On vérifie si au moins un carrier est unhealthy ou en erreur.
+        # Si oui → exit code 1 (échec).
+        # Si tous sont healthy → exit code 0 (succès, implicite).
+        #
+        # Pourquoi ici et pas dans checker.py ?
+        # Parce que l'exit code est une décision de l'ORCHESTRATEUR (main),
+        # pas du module de vérification. checker.py produit des données,
+        # main.py décide quoi en faire.
+        unhealthy_count = sum(1 for r in results if not r["is_healthy"])
+        error_count = sum(1 for r in results if r["error"])
+
+        if unhealthy_count > 0 or error_count > 0:
+            print(f"\n  ❌ {unhealthy_count + error_count} carrier(s) en échec — exit code 1")
+            raise SystemExit(1)
+   
+
     except SystemExit:
         raise
 
