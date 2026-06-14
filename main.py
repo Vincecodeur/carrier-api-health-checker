@@ -8,6 +8,8 @@
 # une seule fois (mode normal) ou en boucle (mode watch).
 # ============================================================================
 
+
+import sys
 import time
 import logging
 
@@ -19,6 +21,10 @@ from src.display import display_dashboard, display_changes
 from src.export import export_to_csv, export_to_json, export_to_html
 from src.compare import find_previous_run, compare_results
 from src.notify import send_teams_notification, should_notify
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 
 def run_pipeline(args, carriers: list[dict], run_number: int = 1) -> list[dict]:
@@ -125,6 +131,27 @@ def main() -> None:
 
     # ---- SETUP ----
     args = parse_args()
+    
+    # ---- VARIABLES D'ENVIRONNEMENT ----
+    # Les flags CLI ont priorité sur les variables d'environnement.
+    # Si --webhook-url est passé en CLI, on l'utilise.
+    # Sinon, on regarde WEBHOOK_URL dans .env.
+    # Sinon, pas de notification.
+    import os
+
+    if not args.webhook_url:
+        args.webhook_url = os.environ.get("WEBHOOK_URL") or None
+
+    if not args.format or args.format == "json":
+        env_format = os.environ.get("EXPORT_FORMAT")
+        if env_format and env_format in ("csv", "json", "html"):
+            args.format = env_format
+
+    if not args.watch:
+        env_watch = os.environ.get("WATCH_INTERVAL")
+        if env_watch and env_watch.isdigit():
+            args.watch = int(env_watch)
+
     setup_logger(log_level=args.log_level)
     logger = logging.getLogger(__name__)
 
@@ -144,7 +171,10 @@ def main() -> None:
         if args.watch:
             print(f"  ⚙️  Watch mode:  ON — every {args.watch} minute(s)")
         if args.webhook_url:
-            print(f"  ⚙️  Webhook:     configured")
+            
+            masked = args.webhook_url[:20] + "..." if len(args.webhook_url) > 20 else args.webhook_url
+            print(f"  ⚙️  Webhook:     {masked} (from {'CLI' if '--webhook-url' in sys.argv else '.env'})")
+
 
     # ---- CHARGER LA CONFIG ----
     # La config est chargée UNE SEULE FOIS, avant la boucle.

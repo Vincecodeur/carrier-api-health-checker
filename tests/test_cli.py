@@ -146,5 +146,17 @@ class TestParseArgs:
         args = parse_args()
         assert args.watch is None
 
+    
+    @patch.dict("os.environ", {"WEBHOOK_URL": "https://from-env.example.com"})
+    @patch("sys.argv", ["main.py"])
+    def test_env_variable_not_override_cli(self):
+        """Les variables d'environnement ne sont PAS gérées par argparse.
+        Elles sont résolues dans main.py — ce test vérifie juste que
+        le CLI default reste None quand pas de flag."""
+
+        args = parse_args()
+        assert args.webhook_url is None  # CLI default, pas la var env
+
+
 
     

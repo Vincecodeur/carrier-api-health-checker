@@ -24,3 +24,6 @@ Thumbs.db
 
 # Autres 
 Roadmap.txt
+
+# Environment variables (secrets)
+.env
