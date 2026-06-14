@@ -235,7 +235,7 @@ class TestCheckCarrier:
         # 1er appel (start) → 1000.0
         # 2ème appel (end) → 1001.0
         # Différence = 1.0 seconde = 1000ms
-        mock_time.side_effect = [1000.0, 1001.0]
+        mock_time.side_effect = [1000.0, 1001.0] + [1001.0] * 10
 
         # Configurer le mock HTTP
         mock_response = MagicMock()
@@ -264,7 +264,7 @@ class TestCheckCarrier:
         Seuil = 500ms → 100ms < 500ms → latency_warning = False.
         """
 
-        mock_time.side_effect = [1000.0, 1000.1]  # 100ms
+        mock_time.side_effect = [1000.0, 1000.1] + [1000.1] * 10  # 100ms
 
         mock_response = MagicMock()
         mock_response.status_code = 200
