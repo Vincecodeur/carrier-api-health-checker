@@ -4,7 +4,7 @@
 # ============================================================================
 
 import argparse
-
+from src.version import VERSION, APP_NAME
 
 def parse_args()-> argparse.Namespace:
     """
@@ -35,6 +35,14 @@ examples:
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    
+    # ---- VERSION ----
+    parser.add_argument(
+        "-V", "--version",
+        action="version",
+        version=f"{APP_NAME} v{VERSION}",
+    )
+
 
     parser.add_argument(
         "-c", "--config",

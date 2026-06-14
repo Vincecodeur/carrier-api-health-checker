@@ -157,6 +157,24 @@ class TestParseArgs:
         args = parse_args()
         assert args.webhook_url is None  # CLI default, pas la var env
 
+    
+    @patch("sys.argv", ["main.py", "--version"])
+    def test_version_flag(self):
+        """--version affiche la version et quitte (SystemExit)."""
+
+        with pytest.raises(SystemExit) as exc_info:
+            parse_args()
+        assert exc_info.value.code == 0
+
+    @patch("sys.argv", ["main.py", "-V"])
+    def test_version_short_flag(self):
+        """Le raccourci -V fonctionne."""
+
+        with pytest.raises(SystemExit) as exc_info:
+            parse_args()
+        assert exc_info.value.code == 0
+
+
 
 
     

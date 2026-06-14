@@ -21,6 +21,7 @@ from src.display import display_dashboard, display_changes
 from src.export import export_to_csv, export_to_json, export_to_html
 from src.compare import find_previous_run, compare_results
 from src.notify import send_teams_notification, should_notify
+from src.version import VERSION, APP_NAME, AUTHOR
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -156,8 +157,9 @@ def main() -> None:
     logger = logging.getLogger(__name__)
 
     # ---- BANNER ----
-    print("\n  🔧 Carrier API Health Checker v1.0")
-    print("  Anchanto — Technical Partnerships")
+    print(f"\n  🔧 {APP_NAME} v{VERSION}")
+    print(f"  {AUTHOR}")
+
 
     if args.verbose:
         print(f"\n  ⚙️  Config file:  {args.config}")
