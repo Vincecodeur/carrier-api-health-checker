@@ -1,4 +1,3 @@
-
 # ============================================================================
 # FICHIER : src/version.py
 # RESPONSABILITÉ : source unique de la version du projet

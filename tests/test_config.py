@@ -4,9 +4,10 @@
 # ============================================================================
 
 import json
-import pytest
-from src.config import load_config, validate_carriers
 
+import pytest
+
+from src.config import load_config, validate_carriers
 
 # ============================================================================
 # Tests pour load_config() — chargement (existants, inchangés)

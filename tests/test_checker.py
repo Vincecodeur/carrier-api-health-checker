@@ -4,8 +4,8 @@
 # VERSION : mise à jour avec 6 tests supplémentaires pour couverture complète
 # ============================================================================
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from src.checker import check_carrier, run_health_checks
 
 
@@ -52,6 +52,7 @@ class TestCheckCarrier:
         """Timeout réseau → error='TIMEOUT'."""
 
         import requests as req
+
         mock_get.side_effect = req.exceptions.Timeout("Connection timed out")
 
         result = check_carrier(sample_carrier, default_retries=0)
@@ -65,6 +66,7 @@ class TestCheckCarrier:
         """Erreur de connexion → error='CONNECTION_ERROR'."""
 
         import requests as req
+
         mock_get.side_effect = req.exceptions.ConnectionError("DNS resolution failed")
 
         result = check_carrier(sample_carrier, default_retries=0)
@@ -97,6 +99,7 @@ class TestCheckCarrier:
         """Toutes les tentatives échouent → error après max_retries."""
 
         import requests as req
+
         mock_get.side_effect = req.exceptions.Timeout("timeout")
 
         result = check_carrier(sample_carrier, default_retries=2)
@@ -147,9 +150,16 @@ class TestCheckCarrier:
         result = check_carrier(sample_carrier)
 
         expected_keys = {
-            "name", "url", "status_code", "response_time_ms",
-            "is_healthy", "error", "expected_status", "attempts",
-            "max_latency_ms", "latency_warning"
+            "name",
+            "url",
+            "status_code",
+            "response_time_ms",
+            "is_healthy",
+            "error",
+            "expected_status",
+            "attempts",
+            "max_latency_ms",
+            "latency_warning",
         }
 
         assert set(result.keys()) == expected_keys, (
@@ -281,11 +291,16 @@ class TestRunHealthChecks:
         """run_health_checks retourne un tuple (results, total_time_ms)."""
 
         mock_check.return_value = {
-            "name": "Test", "url": "https://test.com",
-            "status_code": 200, "response_time_ms": 100.0,
-            "is_healthy": True, "error": None,
-            "expected_status": [200], "attempts": 1,
-            "max_latency_ms": 500, "latency_warning": False,
+            "name": "Test",
+            "url": "https://test.com",
+            "status_code": 200,
+            "response_time_ms": 100.0,
+            "is_healthy": True,
+            "error": None,
+            "expected_status": [200],
+            "attempts": 1,
+            "max_latency_ms": 500,
+            "latency_warning": False,
         }
 
         result = run_health_checks(sample_carriers_list, workers=1)
@@ -302,11 +317,16 @@ class TestRunHealthChecks:
         """Le nombre de résultats = le nombre de carriers en entrée."""
 
         mock_check.return_value = {
-            "name": "Test", "url": "https://test.com",
-            "status_code": 200, "response_time_ms": 100.0,
-            "is_healthy": True, "error": None,
-            "expected_status": [200], "attempts": 1,
-            "max_latency_ms": 500, "latency_warning": False,
+            "name": "Test",
+            "url": "https://test.com",
+            "status_code": 200,
+            "response_time_ms": 100.0,
+            "is_healthy": True,
+            "error": None,
+            "expected_status": [200],
+            "attempts": 1,
+            "max_latency_ms": 500,
+            "latency_warning": False,
         }
 
         results, _ = run_health_checks(sample_carriers_list, workers=1)
@@ -332,11 +352,16 @@ class TestRunHealthChecks:
         """
 
         mock_check.return_value = {
-            "name": "Unhealthy", "url": "https://test.com",
-            "status_code": 404, "response_time_ms": 80.0,
-            "is_healthy": False, "error": None,
-            "expected_status": [200], "attempts": 1,
-            "max_latency_ms": 300, "latency_warning": False,
+            "name": "Unhealthy",
+            "url": "https://test.com",
+            "status_code": 404,
+            "response_time_ms": 80.0,
+            "is_healthy": False,
+            "error": None,
+            "expected_status": [200],
+            "attempts": 1,
+            "max_latency_ms": 300,
+            "latency_warning": False,
         }
 
         results, total_time_ms = run_health_checks(sample_carriers_list, workers=1)
@@ -360,11 +385,16 @@ class TestRunHealthChecks:
         """
 
         mock_check.return_value = {
-            "name": "Error", "url": "https://test.com",
-            "status_code": None, "response_time_ms": None,
-            "is_healthy": False, "error": "TIMEOUT",
-            "expected_status": [200], "attempts": 3,
-            "max_latency_ms": 300, "latency_warning": False,
+            "name": "Error",
+            "url": "https://test.com",
+            "status_code": None,
+            "response_time_ms": None,
+            "is_healthy": False,
+            "error": "TIMEOUT",
+            "expected_status": [200],
+            "attempts": 3,
+            "max_latency_ms": 300,
+            "latency_warning": False,
         }
 
         results, total_time_ms = run_health_checks(sample_carriers_list, workers=1)
@@ -425,11 +455,16 @@ class TestRunHealthChecks:
         """
 
         mock_check.return_value = {
-            "name": "Healthy Carrier", "url": "https://test.com",
-            "status_code": 200, "response_time_ms": 150.0,
-            "is_healthy": True, "error": None,
-            "expected_status": [200], "attempts": 1,
-            "max_latency_ms": 500, "latency_warning": False,
+            "name": "Healthy Carrier",
+            "url": "https://test.com",
+            "status_code": 200,
+            "response_time_ms": 150.0,
+            "is_healthy": True,
+            "error": None,
+            "expected_status": [200],
+            "attempts": 1,
+            "max_latency_ms": 500,
+            "latency_warning": False,
         }
 
         run_health_checks(sample_carriers_list, workers=1)
@@ -449,11 +484,16 @@ class TestRunHealthChecks:
         """
 
         mock_check.return_value = {
-            "name": "Bad Carrier", "url": "https://test.com",
-            "status_code": 404, "response_time_ms": 80.0,
-            "is_healthy": False, "error": None,
-            "expected_status": [200], "attempts": 1,
-            "max_latency_ms": 300, "latency_warning": False,
+            "name": "Bad Carrier",
+            "url": "https://test.com",
+            "status_code": 404,
+            "response_time_ms": 80.0,
+            "is_healthy": False,
+            "error": None,
+            "expected_status": [200],
+            "attempts": 1,
+            "max_latency_ms": 300,
+            "latency_warning": False,
         }
 
         run_health_checks(sample_carriers_list, workers=1)
@@ -470,11 +510,16 @@ class TestRunHealthChecks:
         """
 
         mock_check.return_value = {
-            "name": "Timeout Carrier", "url": "https://test.com",
-            "status_code": None, "response_time_ms": None,
-            "is_healthy": False, "error": "TIMEOUT",
-            "expected_status": [200], "attempts": 3,
-            "max_latency_ms": 300, "latency_warning": False,
+            "name": "Timeout Carrier",
+            "url": "https://test.com",
+            "status_code": None,
+            "response_time_ms": None,
+            "is_healthy": False,
+            "error": "TIMEOUT",
+            "expected_status": [200],
+            "attempts": 3,
+            "max_latency_ms": 300,
+            "latency_warning": False,
         }
 
         run_health_checks(sample_carriers_list, workers=1)
@@ -491,11 +536,16 @@ class TestRunHealthChecks:
         """
 
         mock_check.return_value = {
-            "name": "Slow Carrier", "url": "https://test.com",
-            "status_code": 200, "response_time_ms": 650.0,
-            "is_healthy": True, "error": None,
-            "expected_status": [200], "attempts": 1,
-            "max_latency_ms": 500, "latency_warning": True,
+            "name": "Slow Carrier",
+            "url": "https://test.com",
+            "status_code": 200,
+            "response_time_ms": 650.0,
+            "is_healthy": True,
+            "error": None,
+            "expected_status": [200],
+            "attempts": 1,
+            "max_latency_ms": 500,
+            "latency_warning": True,
         }
 
         run_health_checks(sample_carriers_list, workers=1)

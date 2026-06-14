@@ -22,7 +22,7 @@ Thumbs.db
 .vscode/
 *.code-workspace
 
-# Autres 
+# Autres
 Roadmap.txt
 
 # Environment variables (secrets)

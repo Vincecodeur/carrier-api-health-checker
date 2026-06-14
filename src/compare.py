@@ -83,7 +83,9 @@ def find_previous_run(output_dir: str = "output", exclude_file: str | None = Non
         return None
 
 
-def compare_results(previous_results: list[dict], current_results: list[dict], latency_threshold: float = 50.0) -> list[dict]:
+def compare_results(
+    previous_results: list[dict], current_results: list[dict], latency_threshold: float = 50.0
+) -> list[dict]:
     """
     Compare les résultats du run précédent avec les résultats actuels.
 
@@ -124,26 +126,29 @@ def compare_results(previous_results: list[dict], current_results: list[dict], l
     # Présents dans previous mais pas dans current
     for name in prev_by_name:
         if name not in curr_by_name:
-            changes.append({
-                "type": "REMOVED",
-                "carrier": name,
-                "details": "Carrier removed from config",
-                "previous_value": None,
-                "current_value": None,
-            })
+            changes.append(
+                {
+                    "type": "REMOVED",
+                    "carrier": name,
+                    "details": "Carrier removed from config",
+                    "previous_value": None,
+                    "current_value": None,
+                }
+            )
 
     # ---- COMPARER CHAQUE CARRIER ACTUEL ----
     for name, curr in curr_by_name.items():
-
         # Carrier nouveau (pas dans le run précédent)
         if name not in prev_by_name:
-            changes.append({
-                "type": "NEW",
-                "carrier": name,
-                "details": f"New carrier added — {'HEALTHY' if curr.get('is_healthy') else 'UNHEALTHY'}",
-                "previous_value": None,
-                "current_value": curr.get("status_code"),
-            })
+            changes.append(
+                {
+                    "type": "NEW",
+                    "carrier": name,
+                    "details": f"New carrier added — {'HEALTHY' if curr.get('is_healthy') else 'UNHEALTHY'}",
+                    "previous_value": None,
+                    "current_value": curr.get("status_code"),
+                }
+            )
             continue
 
         prev = prev_by_name[name]
@@ -159,14 +164,18 @@ def compare_results(previous_results: list[dict], current_results: list[dict], l
             if curr_error:
                 details = f"HEALTHY → ERROR ({curr_error})"
             else:
-                details = f"HTTP {prev.get('status_code')} → HTTP {curr.get('status_code')} (unexpected)"
-            changes.append({
-                "type": "NEW_DOWN",
-                "carrier": name,
-                "details": details,
-                "previous_value": prev.get("status_code"),
-                "current_value": curr.get("status_code") or curr_error,
-            })
+                details = (
+                    f"HTTP {prev.get('status_code')} → HTTP {curr.get('status_code')} (unexpected)"
+                )
+            changes.append(
+                {
+                    "type": "NEW_DOWN",
+                    "carrier": name,
+                    "details": details,
+                    "previous_value": prev.get("status_code"),
+                    "current_value": curr.get("status_code") or curr_error,
+                }
+            )
 
         # Unhealthy ou Error → Healthy (RÉTABLI)
         elif not prev_healthy and curr_healthy:
@@ -174,13 +183,15 @@ def compare_results(previous_results: list[dict], current_results: list[dict], l
                 details = f"ERROR ({prev_error}) → HEALTHY (HTTP {curr.get('status_code')})"
             else:
                 details = f"HTTP {prev.get('status_code')} (unhealthy) → HTTP {curr.get('status_code')} (healthy)"
-            changes.append({
-                "type": "RECOVERED",
-                "carrier": name,
-                "details": details,
-                "previous_value": prev.get("status_code") or prev_error,
-                "current_value": curr.get("status_code"),
-            })
+            changes.append(
+                {
+                    "type": "RECOVERED",
+                    "carrier": name,
+                    "details": details,
+                    "previous_value": prev.get("status_code") or prev_error,
+                    "current_value": curr.get("status_code"),
+                }
+            )
 
         # ---- CHANGEMENT DE LATENCE ----
         # Seulement si les deux runs ont une latence mesurable
@@ -188,31 +199,32 @@ def compare_results(previous_results: list[dict], current_results: list[dict], l
         prev_latency = prev.get("response_time_ms")
         curr_latency = curr.get("response_time_ms")
 
-        if (prev_latency and curr_latency
-                and prev_healthy and curr_healthy
-                and prev_latency > 0):
-
+        if prev_latency and curr_latency and prev_healthy and curr_healthy and prev_latency > 0:
             # Calculer le pourcentage de variation
             # (curr - prev) / prev * 100
             # Positif = dégradation, négatif = amélioration
             change_pct = ((curr_latency - prev_latency) / prev_latency) * 100
 
             if change_pct > latency_threshold:
-                changes.append({
-                    "type": "DEGRADED",
-                    "carrier": name,
-                    "details": f"{prev_latency:.0f} ms → {curr_latency:.0f} ms (+{change_pct:.0f}%)",
-                    "previous_value": prev_latency,
-                    "current_value": curr_latency,
-                })
+                changes.append(
+                    {
+                        "type": "DEGRADED",
+                        "carrier": name,
+                        "details": f"{prev_latency:.0f} ms → {curr_latency:.0f} ms (+{change_pct:.0f}%)",
+                        "previous_value": prev_latency,
+                        "current_value": curr_latency,
+                    }
+                )
 
             elif change_pct < -latency_threshold:
-                changes.append({
-                    "type": "IMPROVED",
-                    "carrier": name,
-                    "details": f"{prev_latency:.0f} ms → {curr_latency:.0f} ms ({change_pct:.0f}%)",
-                    "previous_value": prev_latency,
-                    "current_value": curr_latency,
-                })
+                changes.append(
+                    {
+                        "type": "IMPROVED",
+                        "carrier": name,
+                        "details": f"{prev_latency:.0f} ms → {curr_latency:.0f} ms ({change_pct:.0f}%)",
+                        "previous_value": prev_latency,
+                        "current_value": curr_latency,
+                    }
+                )
 
     return changes

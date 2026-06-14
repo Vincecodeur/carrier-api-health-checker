@@ -3,9 +3,9 @@
 # RESPONSABILITÉ : tester le module src/notify.py
 # ============================================================================
 
-from unittest.mock import patch, MagicMock
-from src.notify import build_adaptive_card, send_teams_notification, should_notify
+from unittest.mock import MagicMock, patch
 
+from src.notify import build_adaptive_card, send_teams_notification, should_notify
 
 # ============================================================================
 # Tests pour build_adaptive_card()
@@ -36,7 +36,9 @@ def test_build_card_all_healthy(sample_result_healthy):
     assert any("1/1" in block.get("text", "") for block in body)
 
 
-def test_build_card_with_failures(sample_result_healthy, sample_result_unhealthy, sample_result_error):
+def test_build_card_with_failures(
+    sample_result_healthy, sample_result_unhealthy, sample_result_error
+):
     """
     Test : carriers en échec → carte rouge avec détails des échecs.
     """
@@ -119,7 +121,6 @@ def test_build_card_no_changes(sample_result_healthy):
 
 
 class TestSendNotification:
-
     @patch("src.notify.requests.post")
     def test_success(self, mock_post, sample_result_healthy):
         """
@@ -180,6 +181,7 @@ class TestSendNotification:
         """
 
         import requests as req
+
         mock_post.side_effect = req.exceptions.Timeout("timeout")
 
         result = send_teams_notification(
@@ -196,6 +198,7 @@ class TestSendNotification:
         """
 
         import requests as req
+
         mock_post.side_effect = req.exceptions.ConnectionError("DNS failed")
 
         result = send_teams_notification(
@@ -258,7 +261,6 @@ class TestSendNotification:
 
 
 class TestShouldNotify:
-
     def test_all_healthy_no_changes(self, sample_result_healthy):
         """
         Test : tout healthy, pas de changements → PAS de notification.

@@ -6,10 +6,11 @@
 
 import csv
 import json
-import os
 import logging
+import os
 from datetime import datetime
-from src.version import VERSION, APP_NAME, AUTHOR
+
+from src.version import APP_NAME, AUTHOR, VERSION
 
 # Logger spécifique à ce module → %(name)s affichera "src.export"
 logger = logging.getLogger(__name__)
@@ -30,7 +31,18 @@ def export_to_csv(results: list[dict], output_dir: str = "output") -> str | None
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filepath = os.path.join(output_dir, f"health_check_{timestamp}.csv")
 
-        fieldnames = ["name", "url", "status_code", "response_time_ms", "is_healthy", "error", "expected_status", "attempts","max_latency_ms", "latency_warning"]
+        fieldnames = [
+            "name",
+            "url",
+            "status_code",
+            "response_time_ms",
+            "is_healthy",
+            "error",
+            "expected_status",
+            "attempts",
+            "max_latency_ms",
+            "latency_warning",
+        ]
 
         with open(filepath, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -52,7 +64,7 @@ def export_to_csv(results: list[dict], output_dir: str = "output") -> str | None
         logger.error(f"Failed to export CSV: {e}")
         return None
 
-    
+
 def export_to_json(results: list[dict], output_dir: str = "output") -> str | None:
     """
     Exporte les résultats du health check dans un fichier JSON horodaté.
@@ -100,7 +112,6 @@ def export_to_json(results: list[dict], output_dir: str = "output") -> str | Non
         # Si quelqu'un ouvre le fichier dans 6 mois, il comprend
         # immédiatement ce que c'est sans contexte extérieur.
         output = {
-            
             "tool": APP_NAME,
             "version": VERSION,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -135,6 +146,7 @@ def export_to_json(results: list[dict], output_dir: str = "output") -> str | Non
     except OSError as e:
         logger.error(f"Failed to export JSON: {e}")
         return None
+
 
 def export_to_html(results: list[dict], output_dir: str = "output") -> str | None:
     """
@@ -180,22 +192,22 @@ def export_to_html(results: list[dict], output_dir: str = "output") -> str | Non
         for r in results:
             # Déterminer la couleur et l'icône
             if r.get("error"):
-                bg_color = "#fde8e8"       # Rouge clair
+                bg_color = "#fde8e8"  # Rouge clair
                 icon = "🔴"
                 status_text = r["error"]
                 latency_text = "N/A"
             elif r.get("is_healthy") and r.get("latency_warning"):
-                bg_color = "#fff3e0"       # Orange clair
+                bg_color = "#fff3e0"  # Orange clair
                 icon = "🟠"
                 status_text = f"HTTP {r['status_code']} (slow)"
                 latency_text = f"{r['response_time_ms']} ms ⚠️ > {r.get('max_latency_ms', '?')} ms"
             elif r.get("is_healthy"):
-                bg_color = "#e8f5e9"       # Vert clair
+                bg_color = "#e8f5e9"  # Vert clair
                 icon = "🟢"
                 status_text = f"HTTP {r['status_code']}"
                 latency_text = f"{r['response_time_ms']} ms"
             else:
-                bg_color = "#fffde7"       # Jaune clair
+                bg_color = "#fffde7"  # Jaune clair
                 icon = "🟡"
                 status_text = f"HTTP {r['status_code']} (unexpected)"
                 latency_text = f"{r['response_time_ms']} ms"
@@ -208,8 +220,8 @@ def export_to_html(results: list[dict], output_dir: str = "output") -> str | Non
             rows_html += f"""
             <tr style="background-color: {bg_color};">
                 <td>{icon}</td>
-                <td><strong>{r['name']}</strong></td>
-                <td style="font-size: 0.85em; color: #666;">{r['url']}</td>
+                <td><strong>{r["name"]}</strong></td>
+                <td style="font-size: 0.85em; color: #666;">{r["url"]}</td>
                 <td>{status_text}</td>
                 <td>{latency_text}</td>
                 <td>{attempts_text}</td>

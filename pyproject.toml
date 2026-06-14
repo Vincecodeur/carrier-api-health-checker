@@ -1,0 +1,46 @@
+# ============================================================================
+# CONFIGURATION RUFF — Carrier API Health Checker
+#
+# pyproject.toml est le fichier standard Python pour la config des outils.
+# Ruff y lit ses règles de linting et de formatage.
+# ============================================================================
+
+[tool.ruff]
+# Version Python cible
+target-version = "py312"
+
+# Longueur max d'une ligne (88 = standard Black)
+line-length = 100
+
+# Dossiers à exclure du linting
+exclude = [
+    "venv",
+    "__pycache__",
+    ".git",
+    "output",
+    "logs",
+]
+
+[tool.ruff.lint]
+# Règles activées :
+#   E = pycodestyle errors (erreurs de style)
+#   F = pyflakes (imports inutilisés, variables non définies)
+#   W = pycodestyle warnings (avertissements de style)
+#   I = isort (tri des imports)
+select = ["E", "F", "W", "I"]
+
+# Règles ignorées :
+#   E501 = ligne trop longue (on laisse line-length gérer)
+#   E722 = bare except (on utilise except Exception dans le filet de sécurité)
+ignore = ["E501", "E722"]
+
+[tool.ruff.lint.isort]
+# Force les imports de src/* en "first-party" (pas third-party)
+known-first-party = ["src"]
+
+[tool.ruff.format]
+# Style de guillemets : double quotes
+quote-style = "double"
+
+# Indentation : 4 espaces (standard Python)
+indent-style = "space"

@@ -7,14 +7,12 @@
 from datetime import datetime
 
 
-
 def display_dashboard(
     results: list[dict],
     verbose: bool = False,
     total_time_ms: float | None = None,
     workers: int | None = None,
 ) -> None:
-
     """
     Affiche un dashboard formaté dans le terminal.
     """
@@ -24,7 +22,6 @@ def display_dashboard(
     print("=" * 80)
 
     for r in results:
-
         # ---- LOGIQUE D'ICÔNE ENRICHIE ----
         #
         # AVANT : 3 cas (error, healthy, unhealthy)
@@ -77,9 +74,11 @@ def display_dashboard(
 
             # Verdict (enrichi avec le cas latency_warning)
             if r["error"]:
-                print(f"     Verdict:  ❌ ERROR — no HTTP response received")
+                print("     Verdict:  ❌ ERROR — no HTTP response received")
             elif r["is_healthy"] and r.get("latency_warning"):
-                print(f"     Verdict:  ✅ HEALTHY but ⚠️  SLOW ({r['response_time_ms']} ms > {max_lat} ms)")
+                print(
+                    f"     Verdict:  ✅ HEALTHY but ⚠️  SLOW ({r['response_time_ms']} ms > {max_lat} ms)"
+                )
             elif r["is_healthy"]:
                 print(f"     Verdict:  ✅ HEALTHY ({r['status_code']} ∈ {expected})")
             else:
@@ -112,8 +111,7 @@ def display_dashboard(
 
     if total_time_ms is not None:
         individual_sum = sum(
-            r["response_time_ms"] for r in results
-            if r["response_time_ms"] is not None
+            r["response_time_ms"] for r in results if r["response_time_ms"] is not None
         )
         individual_sum = round(individual_sum, 2)
 

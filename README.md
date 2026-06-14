@@ -409,6 +409,4 @@ Le projet couvre **162+ concepts Python** documentés dans le glossaire (fichier
 
 ## 👤 Auteur
 
-**Vincent Gueret** — Technical Partnerships Manager — 
-
-
+**Vincent Gueret** — Technical Partnerships Manager —

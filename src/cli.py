@@ -4,9 +4,11 @@
 # ============================================================================
 
 import argparse
-from src.version import VERSION, APP_NAME
 
-def parse_args()-> argparse.Namespace:
+from src.version import APP_NAME, VERSION
+
+
+def parse_args() -> argparse.Namespace:
     """
     Définit et parse les arguments de ligne de commande.
     """
@@ -35,17 +37,18 @@ examples:
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    
+
     # ---- VERSION ----
     parser.add_argument(
-        "-V", "--version",
+        "-V",
+        "--version",
         action="version",
         version=f"{APP_NAME} v{VERSION}",
     )
 
-
     parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         type=str,
         default="config/carriers.json",
         metavar="FILE",
@@ -53,7 +56,8 @@ examples:
     )
 
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Show detailed output for each carrier check",
     )
@@ -65,7 +69,8 @@ examples:
     )
 
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         default="output",
         metavar="DIR",
@@ -82,21 +87,23 @@ examples:
     )
 
     parser.add_argument(
-        "-w", "--workers",
+        "-w",
+        "--workers",
         type=int,
         default=5,
         metavar="N",
         help="Number of parallel workers/threads for health checks (default: %(default)s). "
-             "Use 1 for sequential mode.",
+        "Use 1 for sequential mode.",
     )
 
     parser.add_argument(
-        "-r", "--retries",
+        "-r",
+        "--retries",
         type=int,
         default=2,
         metavar="N",
         help="Default number of retries for failed checks (default: %(default)s). "
-             "Can be overridden per carrier in config. Use 0 for no retries.",
+        "Can be overridden per carrier in config. Use 0 for no retries.",
     )
 
     # ---- NOUVEAU : --max-latency ----
@@ -111,14 +118,14 @@ examples:
         default=0,
         metavar="MS",
         help="Default max latency threshold in ms (default: %(default)s = disabled). "
-             "Carriers exceeding this will be flagged. "
-             "Can be overridden per carrier in config.",
+        "Carriers exceeding this will be flagged. "
+        "Can be overridden per carrier in config.",
     )
 
-    
-# ---- NOUVEAU : --format ----
+    # ---- NOUVEAU : --format ----
     parser.add_argument(
-        "-f", "--format",
+        "-f",
+        "--format",
         type=str,
         default="json",
         choices=["csv", "json", "html"],
@@ -126,7 +133,7 @@ examples:
         help="Export format: csv or json or html (default: %(default)s).",
     )
 
-   # ---- NOUVEAU : --webhook-url ----
+    # ---- NOUVEAU : --webhook-url ----
     parser.add_argument(
         "--webhook-url",
         type=str,
@@ -135,16 +142,15 @@ examples:
         help="Teams webhook URL for notifications. If not set, no notification is sent.",
     )
 
-
-# ---- NOUVEAU : --watch ----
+    # ---- NOUVEAU : --watch ----
     parser.add_argument(
-        "-W", "--watch",
+        "-W",
+        "--watch",
         type=int,
         default=None,
         metavar="MINUTES",
         help="Watch mode: re-run health checks every N minutes. Ctrl+C to stop.",
     )
-
 
     args = parser.parse_args()
     return args

@@ -3,7 +3,7 @@
 # RESPONSABILITÉ : tester le module src/version.py
 # ============================================================================
 
-from src.version import VERSION, APP_NAME, AUTHOR
+from src.version import APP_NAME, AUTHOR, VERSION
 
 
 def test_version_format():

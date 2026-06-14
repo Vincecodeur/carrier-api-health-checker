@@ -4,10 +4,11 @@
 # MODIFICATION : ajout du seuil de latence (max_latency_ms) et latency_warning
 # ============================================================================
 
-import requests
-import time
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,6 @@ def check_carrier(carrier: dict, default_retries: int = 2, default_max_latency: 
     backoff_factor = 1.0
 
     for attempt in range(1, max_attempts + 1):
-
         result["attempts"] = attempt
 
         logger.debug(
@@ -73,7 +73,7 @@ def check_carrier(carrier: dict, default_retries: int = 2, default_max_latency: 
             response = requests.get(
                 carrier["url"],
                 timeout=carrier.get("timeout", 10),
-                headers={"User-Agent": "Anchanto-HealthChecker/1.0"}
+                headers={"User-Agent": "Anchanto-HealthChecker/1.0"},
             )
 
             elapsed_ms = round((time.time() - start) * 1000, 2)
@@ -120,15 +120,12 @@ def check_carrier(carrier: dict, default_retries: int = 2, default_max_latency: 
 
         except requests.exceptions.RequestException as e:
             result["error"] = f"REQUEST_ERROR: {str(e)}"
-            logger.warning(
-                f"Attempt {attempt}/{max_attempts} error for {carrier['name']}: {e}"
-            )
+            logger.warning(f"Attempt {attempt}/{max_attempts} error for {carrier['name']}: {e}")
 
         if attempt < max_attempts:
             delay = backoff_factor * attempt
             logger.info(
-                f"Retrying {carrier['name']} in {delay}s "
-                f"(attempt {attempt + 1}/{max_attempts})..."
+                f"Retrying {carrier['name']} in {delay}s (attempt {attempt + 1}/{max_attempts})..."
             )
             time.sleep(delay)
         else:
@@ -140,7 +137,6 @@ def check_carrier(carrier: dict, default_retries: int = 2, default_max_latency: 
     return result
 
 
-
 def run_health_checks(
     carriers: list[dict],
     verbose: bool = False,
@@ -148,7 +144,6 @@ def run_health_checks(
     default_retries: int = 2,
     default_max_latency: int = 0,
 ) -> tuple[list[dict], float]:
-
     """
     Exécute le health check sur tous les transporteurs.
 
@@ -170,7 +165,6 @@ def run_health_checks(
     results = []
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
-
         future_to_carrier = {}
 
         for carrier in carriers:
@@ -180,7 +174,6 @@ def run_health_checks(
             logger.debug(f"Submitted check for {carrier['name']}")
 
         for future in as_completed(future_to_carrier):
-
             carrier = future_to_carrier[future]
 
             try:
@@ -206,7 +199,9 @@ def run_health_checks(
             if result["error"]:
                 pass
             elif result["is_healthy"]:
-                logger.info(f"  ✓ {carrier['name']} — HTTP {result['status_code']} in {result['response_time_ms']} ms")
+                logger.info(
+                    f"  ✓ {carrier['name']} — HTTP {result['status_code']} in {result['response_time_ms']} ms"
+                )
             else:
                 logger.warning(
                     f"  ✗ {carrier['name']} — HTTP {result['status_code']} "
@@ -221,9 +216,13 @@ def run_health_checks(
             if result["error"]:
                 print(f"  ✗ {carrier['name']} — {result['error']}{attempts_info}")
             elif result["is_healthy"]:
-                print(f"  ✓ {carrier['name']} ({result['response_time_ms']} ms){latency_flag}{attempts_info}")
+                print(
+                    f"  ✓ {carrier['name']} ({result['response_time_ms']} ms){latency_flag}{attempts_info}"
+                )
             else:
-                print(f"  ✗ {carrier['name']} — HTTP {result['status_code']} UNHEALTHY ({result['response_time_ms']} ms){attempts_info}")
+                print(
+                    f"  ✗ {carrier['name']} — HTTP {result['status_code']} UNHEALTHY ({result['response_time_ms']} ms){attempts_info}"
+                )
 
     # Réordonner les résultats
     carrier_order = {c["name"]: i for i, c in enumerate(carriers)}
@@ -232,6 +231,8 @@ def run_health_checks(
     total_time_ms = round((time.time() - total_start) * 1000, 2)
 
     healthy = sum(1 for r in results if r["is_healthy"])
-    logger.info(f"Health checks complete: {healthy}/{len(results)} carriers healthy in {total_time_ms} ms")
+    logger.info(
+        f"Health checks complete: {healthy}/{len(results)} carriers healthy in {total_time_ms} ms"
+    )
 
     return results, total_time_ms

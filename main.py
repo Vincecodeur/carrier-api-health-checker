@@ -9,23 +9,23 @@
 # ============================================================================
 
 
+import logging
 import sys
 import time
-import logging
 
-from src.logger import setup_logger
-from src.cli import parse_args
-from src.config import load_config
-from src.checker import run_health_checks
-from src.display import display_dashboard, display_changes
-from src.export import export_to_csv, export_to_json, export_to_html
-from src.compare import find_previous_run, compare_results
-from src.notify import send_teams_notification, should_notify
-from src.version import VERSION, APP_NAME, AUTHOR
 from dotenv import load_dotenv
 
-load_dotenv()
+from src.checker import run_health_checks
+from src.cli import parse_args
+from src.compare import compare_results, find_previous_run
+from src.config import load_config
+from src.display import display_changes, display_dashboard
+from src.export import export_to_csv, export_to_html, export_to_json
+from src.logger import setup_logger
+from src.notify import send_teams_notification, should_notify
+from src.version import APP_NAME, AUTHOR, VERSION
 
+load_dotenv()
 
 
 def run_pipeline(args, carriers: list[dict], run_number: int = 1) -> list[dict]:
@@ -132,7 +132,7 @@ def main() -> None:
 
     # ---- SETUP ----
     args = parse_args()
-    
+
     # ---- VARIABLES D'ENVIRONNEMENT ----
     # Les flags CLI ont priorité sur les variables d'environnement.
     # Si --webhook-url est passé en CLI, on l'utilise.
@@ -160,23 +160,26 @@ def main() -> None:
     print(f"\n  🔧 {APP_NAME} v{VERSION}")
     print(f"  {AUTHOR}")
 
-
     if args.verbose:
         print(f"\n  ⚙️  Config file:  {args.config}")
-        print(f"  ⚙️  Verbose mode: ON")
+        print("  ⚙️  Verbose mode: ON")
         print(f"  ⚙️  Log level:    {args.log_level}")
         print(f"  ⚙️  Workers:      {args.workers}")
         print(f"  ⚙️  Retries:      {args.retries}")
         max_lat_display = f"{args.max_latency} ms" if args.max_latency > 0 else "disabled"
         print(f"  ⚙️  Max latency:  {max_lat_display}")
-        print(f"  ⚙️  Export:       {'OFF' if args.no_export else f'ON → {args.output} ({args.format})'}")
+        print(
+            f"  ⚙️  Export:       {'OFF' if args.no_export else f'ON → {args.output} ({args.format})'}"
+        )
         if args.watch:
             print(f"  ⚙️  Watch mode:  ON — every {args.watch} minute(s)")
         if args.webhook_url:
-            
-            masked = args.webhook_url[:20] + "..." if len(args.webhook_url) > 20 else args.webhook_url
-            print(f"  ⚙️  Webhook:     {masked} (from {'CLI' if '--webhook-url' in sys.argv else '.env'})")
-
+            masked = (
+                args.webhook_url[:20] + "..." if len(args.webhook_url) > 20 else args.webhook_url
+            )
+            print(
+                f"  ⚙️  Webhook:     {masked} (from {'CLI' if '--webhook-url' in sys.argv else '.env'})"
+            )
 
     # ---- CHARGER LA CONFIG ----
     # La config est chargée UNE SEULE FOIS, avant la boucle.

@@ -6,8 +6,8 @@
 import csv
 import json
 import os
-from src.export import export_to_csv, export_to_json, export_to_html
 
+from src.export import export_to_csv, export_to_html, export_to_json
 
 # ============================================================================
 # Tests pour export_to_csv()
@@ -73,7 +73,9 @@ def test_export_csv_fieldnames_match_result_keys(tmp_path, sample_result_healthy
     )
 
 
-def test_export_multiple_results(tmp_path, sample_result_healthy, sample_result_unhealthy, sample_result_error):
+def test_export_multiple_results(
+    tmp_path, sample_result_healthy, sample_result_unhealthy, sample_result_error
+):
     """
     Test : export de plusieurs résultats (healthy, unhealthy, error).
     """
@@ -148,9 +150,9 @@ def test_export_json_content(tmp_path, sample_result_healthy):
 
     # Types conservés (contrairement au CSV)
     assert result["name"] == "Test Carrier"
-    assert result["status_code"] == 200        # int, pas "200"
-    assert result["is_healthy"] is True         # bool, pas "True"
-    assert result["error"] is None              # null, pas ""
+    assert result["status_code"] == 200  # int, pas "200"
+    assert result["is_healthy"] is True  # bool, pas "True"
+    assert result["error"] is None  # null, pas ""
     assert result["response_time_ms"] == 150.0  # float, pas "150.0"
 
 
@@ -170,9 +172,9 @@ def test_export_json_multiple_results(
         data = json.load(f)
 
     assert data["total_carriers"] == 3
-    assert data["healthy"] == 1       # sample_result_healthy
-    assert data["unhealthy"] == 1     # sample_result_unhealthy (is_healthy=False, error=None)
-    assert data["errors"] == 1        # sample_result_error (error="TIMEOUT")
+    assert data["healthy"] == 1  # sample_result_healthy
+    assert data["unhealthy"] == 1  # sample_result_unhealthy (is_healthy=False, error=None)
+    assert data["errors"] == 1  # sample_result_error (error="TIMEOUT")
     assert len(data["results"]) == 3
 
 
@@ -183,6 +185,7 @@ def test_export_json_returns_none_on_error(tmp_path):
 
     result = export_to_json([], output_dir="/root/impossible_path_12345")
     assert result is None or isinstance(result, str)
+
 
 # ============================================================================
 # Tests pour export_to_html()

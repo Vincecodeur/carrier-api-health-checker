@@ -133,7 +133,6 @@ def setup_logger(log_level: str = "INFO") -> logging.Logger:
         #                               |└── largeur minimale de 8 caractères
         #                               └── aligné à gauche (le - signifie left-align)
         #   Résultat : "INFO    " ou "WARNING " ou "ERROR   " → colonnes alignées
-
         datefmt="%Y-%m-%d %H:%M:%S",
         #   datefmt remplace le format par défaut de %(asctime)s
         #   Sans datefmt, le timestamp inclut les millisecondes : "2026-06-12 17:45:00,123"

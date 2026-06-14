@@ -1,0 +1,43 @@
+# ============================================================================
+# PRE-COMMIT HOOKS — Carrier API Health Checker
+#
+# Ces hooks s'exécutent automatiquement avant chaque git commit.
+# Si un hook échoue, le commit est bloqué.
+#
+# Installation : pre-commit install
+# Test manuel  : pre-commit run --all-files
+# ============================================================================
+
+repos:
+  # ---- HOOKS GÉNÉRIQUES ----
+  # Vérifications basiques sur tous les fichiers
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Supprime les espaces en fin de ligne
+      - id: trailing-whitespace
+
+      # S'assure que chaque fichier finit par un saut de ligne
+      - id: end-of-file-fixer
+
+      # Vérifie que les fichiers YAML sont valides
+      - id: check-yaml
+
+      # Vérifie que les fichiers JSON sont valides
+      - id: check-json
+
+      # Empêche de commiter des fichiers trop gros (> 500KB)
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+
+  # ---- RUFF (Linter + Formatter Python) ----
+  # Remplace flake8, isort, pycodestyle en un seul outil ultra-rapide
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.12
+    hooks:
+      # Linter : détecte les erreurs de style et les problèmes
+      - id: ruff
+        args: [--fix]
+
+      # Formatter : formate le code automatiquement
+      - id: ruff-format

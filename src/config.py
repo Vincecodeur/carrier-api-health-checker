@@ -60,14 +60,12 @@ def validate_carriers(carriers: list[dict]) -> list[str]:
     errors = []
 
     for i, carrier in enumerate(carriers):
-
         # Identifiant pour les messages d'erreur
         # On utilise le name s'il existe, sinon l'index
         carrier_id = carrier.get("name", f"carrier index {i}")
 
         # ---- CHAMPS REQUIS ----
         for field, expected_type in REQUIRED_FIELDS.items():
-
             # Vérifier la présence
             if field not in carrier:
                 errors.append(f'Carrier "{carrier_id}": missing required field "{field}"')
@@ -128,13 +126,10 @@ def validate_carriers(carriers: list[dict]) -> list[str]:
 
             # timeout : supérieur à 0
             if field == "timeout" and value <= 0:
-                errors.append(
-                    f'Carrier "{carrier_id}": field "timeout" must be > 0, got {value}'
-                )
+                errors.append(f'Carrier "{carrier_id}": field "timeout" must be > 0, got {value}')
 
         # ---- CHAMPS OPTIONNELS ----
         for field, expected_type in OPTIONAL_FIELDS.items():
-
             # Absent = pas d'erreur (c'est optionnel)
             if field not in carrier:
                 continue
@@ -155,9 +150,7 @@ def validate_carriers(carriers: list[dict]) -> list[str]:
 
             # retries : >= 0
             if field == "retries" and value < 0:
-                errors.append(
-                    f'Carrier "{carrier_id}": field "retries" must be >= 0, got {value}'
-                )
+                errors.append(f'Carrier "{carrier_id}": field "retries" must be >= 0, got {value}')
 
             # max_latency_ms : >= 0
             if field == "max_latency_ms" and value < 0:

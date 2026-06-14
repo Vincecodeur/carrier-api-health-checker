@@ -4,10 +4,8 @@
 # ============================================================================
 
 import json
-import os
-from pathlib import Path
-from src.compare import find_previous_run, compare_results
 
+from src.compare import compare_results, find_previous_run
 
 # ============================================================================
 # Tests pour find_previous_run()
@@ -98,10 +96,22 @@ def test_compare_no_changes():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 105.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 105.0,
+        },
     ]
 
     changes = compare_results(previous, current)
@@ -116,10 +126,22 @@ def test_compare_new_down():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": False, "error": None, "status_code": 404, "response_time_ms": 80.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": False,
+            "error": None,
+            "status_code": 404,
+            "response_time_ms": 80.0,
+        },
     ]
 
     changes = compare_results(previous, current)
@@ -135,10 +157,22 @@ def test_compare_new_down_error():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": False, "error": "TIMEOUT", "status_code": None, "response_time_ms": None},
+        {
+            "name": "Carrier A",
+            "is_healthy": False,
+            "error": "TIMEOUT",
+            "status_code": None,
+            "response_time_ms": None,
+        },
     ]
 
     changes = compare_results(previous, current)
@@ -154,10 +188,22 @@ def test_compare_recovered():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": False, "error": None, "status_code": 404, "response_time_ms": 80.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": False,
+            "error": None,
+            "status_code": 404,
+            "response_time_ms": 80.0,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
 
     changes = compare_results(previous, current)
@@ -172,10 +218,22 @@ def test_compare_recovered_from_error():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": False, "error": "TIMEOUT", "status_code": None, "response_time_ms": None},
+        {
+            "name": "Carrier A",
+            "is_healthy": False,
+            "error": "TIMEOUT",
+            "status_code": None,
+            "response_time_ms": None,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
 
     changes = compare_results(previous, current)
@@ -191,10 +249,22 @@ def test_compare_degraded_latency():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 200.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 200.0,
+        },
     ]
 
     # 100 → 200 = +100% > 50% seuil
@@ -211,10 +281,22 @@ def test_compare_improved_latency():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 300.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 300.0,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
 
     # 300 → 100 = -67% < -50% seuil
@@ -231,7 +313,13 @@ def test_compare_new_carrier():
 
     previous = []
     current = [
-        {"name": "New Carrier", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "New Carrier",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
 
     changes = compare_results(previous, current)
@@ -247,7 +335,13 @@ def test_compare_removed_carrier():
     """
 
     previous = [
-        {"name": "Old Carrier", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Old Carrier",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
     current = []
 
@@ -264,26 +358,74 @@ def test_compare_multiple_changes():
     """
 
     previous = [
-        {"name": "Down Carrier", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
-        {"name": "Recovered", "is_healthy": False, "error": "TIMEOUT", "status_code": None, "response_time_ms": None},
-        {"name": "Stable", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
-        {"name": "Removed", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Down Carrier",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
+        {
+            "name": "Recovered",
+            "is_healthy": False,
+            "error": "TIMEOUT",
+            "status_code": None,
+            "response_time_ms": None,
+        },
+        {
+            "name": "Stable",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
+        {
+            "name": "Removed",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
     current = [
-        {"name": "Down Carrier", "is_healthy": False, "error": "CONNECTION_ERROR", "status_code": None, "response_time_ms": None},
-        {"name": "Recovered", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 150.0},
-        {"name": "Stable", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 105.0},
-        {"name": "Brand New", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 80.0},
+        {
+            "name": "Down Carrier",
+            "is_healthy": False,
+            "error": "CONNECTION_ERROR",
+            "status_code": None,
+            "response_time_ms": None,
+        },
+        {
+            "name": "Recovered",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 150.0,
+        },
+        {
+            "name": "Stable",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 105.0,
+        },
+        {
+            "name": "Brand New",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 80.0,
+        },
     ]
 
     changes = compare_results(previous, current)
 
     types = [c["type"] for c in changes]
 
-    assert "NEW_DOWN" in types       # Down Carrier: healthy → error
-    assert "RECOVERED" in types      # Recovered: error → healthy
-    assert "REMOVED" in types        # Removed: absent du current
-    assert "NEW" in types            # Brand New: absent du previous
+    assert "NEW_DOWN" in types  # Down Carrier: healthy → error
+    assert "RECOVERED" in types  # Recovered: error → healthy
+    assert "REMOVED" in types  # Removed: absent du current
+    assert "NEW" in types  # Brand New: absent du previous
     # Stable: pas de changement (5% variation < 50%)
 
 
@@ -293,10 +435,22 @@ def test_compare_custom_latency_threshold():
     """
 
     previous = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 100.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 100.0,
+        },
     ]
     current = [
-        {"name": "Carrier A", "is_healthy": True, "error": None, "status_code": 200, "response_time_ms": 130.0},
+        {
+            "name": "Carrier A",
+            "is_healthy": True,
+            "error": None,
+            "status_code": 200,
+            "response_time_ms": 130.0,
+        },
     ]
 
     # 30% de variation → pas de changement avec le seuil par défaut (50%)

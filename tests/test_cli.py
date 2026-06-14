@@ -3,13 +3,14 @@
 # RESPONSABILITÉ : tester le module src/cli.py
 # ============================================================================
 
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from src.cli import parse_args
 
 
 class TestParseArgs:
-
     @patch("sys.argv", ["main.py"])
     def test_default_values(self):
         """Sans arguments, les valeurs par défaut sont correctes."""
@@ -103,7 +104,7 @@ class TestParseArgs:
         with pytest.raises(SystemExit):
             parse_args()
 
-# NOUVEAU — test pour --format html
+    # NOUVEAU — test pour --format html
     @patch("sys.argv", ["main.py", "--format", "html"])
     def test_format_html(self):
         """--format html est correctement parsé."""
@@ -146,7 +147,6 @@ class TestParseArgs:
         args = parse_args()
         assert args.watch is None
 
-    
     @patch.dict("os.environ", {"WEBHOOK_URL": "https://from-env.example.com"})
     @patch("sys.argv", ["main.py"])
     def test_env_variable_not_override_cli(self):
@@ -157,7 +157,6 @@ class TestParseArgs:
         args = parse_args()
         assert args.webhook_url is None  # CLI default, pas la var env
 
-    
     @patch("sys.argv", ["main.py", "--version"])
     def test_version_flag(self):
         """--version affiche la version et quitte (SystemExit)."""
@@ -173,8 +172,3 @@ class TestParseArgs:
         with pytest.raises(SystemExit) as exc_info:
             parse_args()
         assert exc_info.value.code == 0
-
-
-
-
-    

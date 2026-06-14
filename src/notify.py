@@ -12,9 +12,10 @@
 #   3. Retourner True/False selon le succès
 # ============================================================================
 
-import requests
 import logging
 from datetime import datetime
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -84,12 +85,14 @@ def build_adaptive_card(
 
     if failed:
         # Séparateur
-        body.append({
-            "type": "TextBlock",
-            "text": "**Carriers en échec :**",
-            "spacing": "Medium",
-            "weight": "Bolder",
-        })
+        body.append(
+            {
+                "type": "TextBlock",
+                "text": "**Carriers en échec :**",
+                "spacing": "Medium",
+                "weight": "Bolder",
+            }
+        )
 
         for r in failed:
             if r.get("error"):
@@ -97,11 +100,13 @@ def build_adaptive_card(
             else:
                 detail = f"🟡 **{r['name']}** — HTTP {r.get('status_code')} (unexpected)"
 
-            body.append({
-                "type": "TextBlock",
-                "text": detail,
-                "spacing": "Small",
-            })
+            body.append(
+                {
+                    "type": "TextBlock",
+                    "text": detail,
+                    "spacing": "Small",
+                }
+            )
 
     # ---- CHANGEMENTS CRITIQUES ----
     if changes:
@@ -110,12 +115,14 @@ def build_adaptive_card(
         critical_changes = [c for c in changes if c["type"] in critical_types]
 
         if critical_changes:
-            body.append({
-                "type": "TextBlock",
-                "text": "**Changements détectés :**",
-                "spacing": "Medium",
-                "weight": "Bolder",
-            })
+            body.append(
+                {
+                    "type": "TextBlock",
+                    "text": "**Changements détectés :**",
+                    "spacing": "Medium",
+                    "weight": "Bolder",
+                }
+            )
 
             icons = {
                 "NEW_DOWN": "🔻",
@@ -124,11 +131,13 @@ def build_adaptive_card(
 
             for c in critical_changes:
                 icon = icons.get(c["type"], "❓")
-                body.append({
-                    "type": "TextBlock",
-                    "text": f"{icon} **{c['type']}** — {c['carrier']}: {c['details']}",
-                    "spacing": "Small",
-                })
+                body.append(
+                    {
+                        "type": "TextBlock",
+                        "text": f"{icon} **{c['type']}** — {c['carrier']}: {c['details']}",
+                        "spacing": "Small",
+                    }
+                )
 
     # ---- ASSEMBLER LE PAYLOAD COMPLET ----
     #
