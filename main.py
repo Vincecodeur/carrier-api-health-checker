@@ -10,6 +10,7 @@ from src.checker import run_health_checks
 from src.display import display_dashboard, display_changes
 from src.export import export_to_csv, export_to_json, export_to_html
 from src.compare import find_previous_run, compare_results
+from src.notify import send_teams_notification, should_notify
 
 
 
@@ -95,7 +96,32 @@ def main()-> None:
             changes = compare_results(previous_run["results"], results)
             display_changes(changes)
         else:
+            changes = None
             print("\n  ℹ️  No previous JSON run found — skipping comparison")
+
+
+        # ÉTAPE 4c : Notification Teams (conditionnelle)
+        #
+        # On envoie une notification seulement si :
+        #   1. --webhook-url est fourni
+        #   2. should_notify() retourne True (échec ou changement critique)
+        #
+        # Si le webhook n'est pas configuré → on skip silencieusement.
+        # Si l'envoi échoue → on log un warning mais le script continue.
+        if args.webhook_url:
+            if should_notify(results, changes):
+                success = send_teams_notification(
+                    webhook_url=args.webhook_url,
+                    results=results,
+                    changes=changes,
+                )
+                if success:
+                    print("  📨 Teams notification sent")
+                else:
+                    print("  ⚠️  Teams notification failed (see logs)")
+            else:
+                logger.info("All carriers healthy, no critical changes — notification skipped")
+
 
         # ÉTAPE 5 : Exit code conditionnel
         unhealthy_count = sum(1 for r in results if not r["is_healthy"])

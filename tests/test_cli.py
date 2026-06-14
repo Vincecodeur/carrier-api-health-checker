@@ -25,6 +25,7 @@ class TestParseArgs:
         assert args.retries == 2
         assert args.max_latency == 0
         assert args.format == "json"
+        assert args.webhook_url is None
 
     @patch("sys.argv", ["main.py", "--verbose", "--no-export"])
     def test_boolean_flags(self):
@@ -108,6 +109,20 @@ class TestParseArgs:
 
         args = parse_args()
         assert args.format == "html"
+
+    @patch("sys.argv", ["main.py", "--webhook-url", "https://fake.webhook.com"])
+    def test_webhook_url(self):
+        """--webhook-url est correctement parsé."""
+
+        args = parse_args()
+        assert args.webhook_url == "https://fake.webhook.com"
+
+    @patch("sys.argv", ["main.py"])
+    def test_webhook_url_default_none(self):
+        """Sans --webhook-url, la valeur est None."""
+
+        args = parse_args()
+        assert args.webhook_url is None
 
 
     

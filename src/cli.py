@@ -28,6 +28,7 @@ examples:
   python main.py --max-latency 0                   Disable latency warnings
   python main.py --format json                     Export results as JSON
   python main.py --format csv                      Export results as CSV (default)
+  python main.py --webhook-url "https://..."       Send Teams alert if carriers fail
   python main.py --format html                     Export results as HTML dashboard
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -113,6 +114,15 @@ examples:
         choices=["csv", "json", "html"],
         metavar="FORMAT",
         help="Export format: csv or json or html (default: %(default)s).",
+    )
+
+   # ---- NOUVEAU : --webhook-url ----
+    parser.add_argument(
+        "--webhook-url",
+        type=str,
+        default=None,
+        metavar="URL",
+        help="Teams webhook URL for notifications. If not set, no notification is sent.",
     )
 
 
