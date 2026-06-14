@@ -1,5 +1,6 @@
 # 🚚 Carrier API Health Checker
 
+[![CI](https://github.com/Vincecodeur/carrier-api-health-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/Vincecodeur/carrier-api-health-checker/actions/workflows/ci.yml)
 
 Outil CLI de monitoring des endpoints API des transporteurs (Colissimo, Chronopost, DHL, GLS, DPD, FedEx, UPS). Vérifie la disponibilité, mesure la latence, détecte les dégradations, compare les runs, envoie des alertes Teams et exporte les résultats en CSV, JSON ou HTML.
 
