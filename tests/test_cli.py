@@ -26,6 +26,7 @@ class TestParseArgs:
         assert args.max_latency == 0
         assert args.format == "json"
         assert args.webhook_url is None
+        assert args.watch is None
 
     @patch("sys.argv", ["main.py", "--verbose", "--no-export"])
     def test_boolean_flags(self):
@@ -123,6 +124,27 @@ class TestParseArgs:
 
         args = parse_args()
         assert args.webhook_url is None
+
+    @patch("sys.argv", ["main.py", "--watch", "5"])
+    def test_watch_value(self):
+        """--watch 5 est correctement parsé."""
+
+        args = parse_args()
+        assert args.watch == 5
+
+    @patch("sys.argv", ["main.py", "-W", "10"])
+    def test_watch_short_flag(self):
+        """Le raccourci -W fonctionne."""
+
+        args = parse_args()
+        assert args.watch == 10
+
+    @patch("sys.argv", ["main.py"])
+    def test_watch_default_none(self):
+        """Sans --watch, la valeur est None."""
+
+        args = parse_args()
+        assert args.watch is None
 
 
     

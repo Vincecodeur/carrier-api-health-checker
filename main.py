@@ -1,7 +1,15 @@
 # ============================================================================
 # FICHIER : main.py
-# MODIFICATION : passage de args.retries à run_health_checks()
+# RESPONSABILITÉ : orchestration du pipeline complet
+#
+# VERSION : E4 — ajout du mode watch (--watch N)
+#
+# Le pipeline est encapsulé dans run_pipeline() pour pouvoir être appelé
+# une seule fois (mode normal) ou en boucle (mode watch).
 # ============================================================================
+
+import time
+import logging
 
 from src.logger import setup_logger
 from src.cli import parse_args
@@ -13,132 +21,190 @@ from src.compare import find_previous_run, compare_results
 from src.notify import send_teams_notification, should_notify
 
 
+def run_pipeline(args, carriers: list[dict], run_number: int = 1) -> list[dict]:
+    """
+    Exécute le pipeline complet une fois :
+        1. Health checks
+        2. Affichage dashboard
+        3. Export (CSV/JSON/HTML)
+        4. Comparaison historique
+        5. Notification Teams
 
-import logging
+    Args:
+        args:       Arguments CLI parsés (argparse.Namespace).
+        carriers:   Liste de dicts transporteurs (chargée depuis carriers.json).
+        run_number: Numéro du run (pour le mode watch).
+
+    Returns:
+        Liste de dicts résultats du health check.
+
+    Cette fonction ne gère PAS l'exit code — c'est la responsabilité
+    de main(). En mode watch, un carrier down ne doit pas arrêter la boucle.
+    """
+
+    logger = logging.getLogger(__name__)
+
+    # ---- EN-TÊTE DU RUN (mode watch uniquement) ----
+    if run_number > 1 or args.watch:
+        print(f"\n{'=' * 80}")
+        print(f"  🔄 Run #{run_number}")
+        print(f"{'=' * 80}")
+
+    # ---- ÉTAPE 1 : Health checks ----
+    results, total_time_ms = run_health_checks(
+        carriers,
+        verbose=args.verbose,
+        workers=args.workers,
+        default_retries=args.retries,
+        default_max_latency=args.max_latency,
+    )
+
+    # ---- ÉTAPE 2 : Affichage dashboard ----
+    display_dashboard(
+        results,
+        verbose=args.verbose,
+        total_time_ms=total_time_ms,
+        workers=args.workers,
+    )
+
+    # ---- ÉTAPE 3 : Export (conditionnel) ----
+    if not args.no_export:
+        if args.format == "json":
+            exported_file = export_to_json(results, output_dir=args.output)
+        elif args.format == "html":
+            exported_file = export_to_html(results, output_dir=args.output)
+        else:
+            exported_file = export_to_csv(results, output_dir=args.output)
+    else:
+        exported_file = None
+        print("  ⏭️  Export skipped (--no-export flag)")
+
+    # ---- ÉTAPE 4 : Comparaison historique ----
+    changes: list[dict] | None = None
+
+    previous_run = find_previous_run(
+        output_dir=args.output,
+        exclude_file=exported_file if args.format == "json" else None,
+    )
+
+    if previous_run and "results" in previous_run:
+        changes = compare_results(previous_run["results"], results)
+        display_changes(changes)
+    else:
+        print("\n  ℹ️  No previous JSON run found — skipping comparison")
+
+    # ---- ÉTAPE 5 : Notification Teams (conditionnelle) ----
+    if args.webhook_url:
+        if should_notify(results, changes):
+            success = send_teams_notification(
+                webhook_url=args.webhook_url,
+                results=results,
+                changes=changes,
+            )
+            if success:
+                print("  📨 Teams notification sent")
+            else:
+                print("  ⚠️  Teams notification failed (see logs)")
+        else:
+            logger.info("All carriers healthy, no critical changes — notification skipped")
+
+    return results
 
 
-def main()-> None:
+def main() -> None:
     """
     Fonction principale — orchestre le pipeline complet.
+
+    Deux modes de fonctionnement :
+        - Mode normal (défaut) : run unique + exit code
+        - Mode watch (--watch N) : boucle infinie, re-run toutes les N minutes
+
+    Returns:
+        None (point d'entrée du programme).
     """
 
+    # ---- SETUP ----
     args = parse_args()
     setup_logger(log_level=args.log_level)
     logger = logging.getLogger(__name__)
 
-    try:
-        print("\n  🔧 Carrier API Health Checker v1.0")
-        print("  Anchanto — Technical Partnerships")
+    # ---- BANNER ----
+    print("\n  🔧 Carrier API Health Checker v1.0")
+    print("  Anchanto — Technical Partnerships")
 
-        
-        if args.verbose:
-            print(f"\n  ⚙️  Config file:  {args.config}")
-            print(f"  ⚙️  Verbose mode: ON")
-            print(f"  ⚙️  Log level:    {args.log_level}")
-            print(f"  ⚙️  Workers:      {args.workers}")
-            print(f"  ⚙️  Retries:      {args.retries}")
-            max_lat_display = f"{args.max_latency} ms" if args.max_latency > 0 else "disabled"
-            print(f"  ⚙️  Max latency:  {max_lat_display}")
-            print(f"  ⚙️  Export:       {'OFF' if args.no_export else f'ON → {args.output} ({args.format})'}")
-
-
-
-        # ÉTAPE 1 : Charger la config
-        carriers = load_config(args.config)
-        print(f"\n  📋 {len(carriers)} carriers loaded from config\n")
-
-        # ÉTAPE 2 : Lancer les health checks
-        # MODIFIÉ : on passe default_retries=args.retries
-        results, total_time_ms = run_health_checks(
-            carriers,
-            verbose=args.verbose,
-            workers=args.workers,
-            default_retries=args.retries,
-            default_max_latency=args.max_latency,
-        )
-
-        # ÉTAPE 3 : Afficher le dashboard
-        display_dashboard(
-            results,
-            verbose=args.verbose,
-            total_time_ms=total_time_ms,
-            workers=args.workers,
-        )
-
-
-# ÉTAPE 4 : Exporter (conditionnel)
-        if not args.no_export:
-            if args.format == "json":
-                exported_file = export_to_json(results, output_dir=args.output)
-            elif args.format == "html":
-                exported_file = export_to_html(results, output_dir=args.output)
-            else:
-                exported_file = export_to_csv(results, output_dir=args.output)
-        else:
-            exported_file = None
-            print("  ⏭️  Export skipped (--no-export flag)")
-
-        # ÉTAPE 4b : Comparaison avec le run précédent
-        #
-        # On cherche le dernier fichier JSON dans output/.
-        # Si on vient d'exporter en JSON, on exclut ce fichier
-        # pour ne pas comparer le run avec lui-même.
-        #
-        # La comparaison fonctionne QUEL QUE SOIT le format d'export actuel :
-        # même avec --format csv ou --format html, on peut comparer
-        # avec un ancien fichier JSON s'il existe.
-        previous_run = find_previous_run(
-            output_dir=args.output,
-            exclude_file=exported_file if args.format == "json" else None,
-        )
-
-        if previous_run and "results" in previous_run:
-            changes = compare_results(previous_run["results"], results)
-            display_changes(changes)
-        else:
-            changes = None
-            print("\n  ℹ️  No previous JSON run found — skipping comparison")
-
-
-        # ÉTAPE 4c : Notification Teams (conditionnelle)
-        #
-        # On envoie une notification seulement si :
-        #   1. --webhook-url est fourni
-        #   2. should_notify() retourne True (échec ou changement critique)
-        #
-        # Si le webhook n'est pas configuré → on skip silencieusement.
-        # Si l'envoi échoue → on log un warning mais le script continue.
+    if args.verbose:
+        print(f"\n  ⚙️  Config file:  {args.config}")
+        print(f"  ⚙️  Verbose mode: ON")
+        print(f"  ⚙️  Log level:    {args.log_level}")
+        print(f"  ⚙️  Workers:      {args.workers}")
+        print(f"  ⚙️  Retries:      {args.retries}")
+        max_lat_display = f"{args.max_latency} ms" if args.max_latency > 0 else "disabled"
+        print(f"  ⚙️  Max latency:  {max_lat_display}")
+        print(f"  ⚙️  Export:       {'OFF' if args.no_export else f'ON → {args.output} ({args.format})'}")
+        if args.watch:
+            print(f"  ⚙️  Watch mode:  ON — every {args.watch} minute(s)")
         if args.webhook_url:
-            if should_notify(results, changes):
-                success = send_teams_notification(
-                    webhook_url=args.webhook_url,
-                    results=results,
-                    changes=changes,
-                )
-                if success:
-                    print("  📨 Teams notification sent")
-                else:
-                    print("  ⚠️  Teams notification failed (see logs)")
-            else:
-                logger.info("All carriers healthy, no critical changes — notification skipped")
+            print(f"  ⚙️  Webhook:     configured")
 
+    # ---- CHARGER LA CONFIG ----
+    # La config est chargée UNE SEULE FOIS, avant la boucle.
+    # Si carriers.json change pendant le watch, il faut relancer le script.
+    carriers = load_config(args.config)
 
-        # ÉTAPE 5 : Exit code conditionnel
-        unhealthy_count = sum(1 for r in results if not r["is_healthy"])
-        error_count = sum(1 for r in results if r["error"])
+    print(f"\n  📋 {len(carriers)} carriers loaded from config\n")
 
-        if unhealthy_count > 0 or error_count > 0:
-            print(f"\n  ❌ {unhealthy_count + error_count} carrier(s) en échec — exit code 1")
+    # ---- WARNING : watch + no-export ----
+    if args.watch and args.no_export:
+        print("  ⚠️  Warning: watch mode without export — historical comparison won't work\n")
+
+    # ---- MODE WATCH ----
+    if args.watch:
+        interval_seconds = args.watch * 60
+        run_count = 0
+
+        try:
+            while True:
+                run_count += 1
+
+                try:
+                    run_pipeline(args, carriers, run_number=run_count)
+                except SystemExit:
+                    # run_pipeline ne lève pas SystemExit, mais au cas où
+                    # un module le ferait, on ne veut pas tuer le watch
+                    logger.warning("SystemExit caught during watch run — continuing")
+                except Exception as e:
+                    # Filet de sécurité : si le pipeline crashe,
+                    # on log l'erreur et on continue au prochain run.
+                    # Le watch ne doit JAMAIS s'arrêter à cause d'un bug.
+                    logger.error(f"Error during run #{run_count}: {e}")
+                    print(f"\n  ⚠️  Run #{run_count} failed: {e}")
+
+                # ---- ATTENTE ENTRE LES RUNS ----
+                print(f"\n  ⏳ Next run in {args.watch} minute(s) (Ctrl+C to stop)...")
+                time.sleep(interval_seconds)
+
+        except KeyboardInterrupt:
+            # Ctrl+C propre — message de fin
+            print(f"\n\n  🛑 Watch mode stopped by user ({run_count} run(s) completed)")
+
+    # ---- MODE NORMAL (run unique) ----
+    else:
+        try:
+            results = run_pipeline(args, carriers)
+
+            # Exit code conditionnel (mode normal uniquement)
+            unhealthy_count = sum(1 for r in results if not r["is_healthy"])
+            error_count = sum(1 for r in results if r["error"])
+
+            if unhealthy_count > 0 or error_count > 0:
+                print(f"\n  ❌ {unhealthy_count + error_count} carrier(s) en échec — exit code 1")
+                raise SystemExit(1)
+
+        except SystemExit:
+            raise
+        except Exception as e:
+            logger.critical(f"Fatal error: {e}")
             raise SystemExit(1)
-
-   
-
-    except SystemExit:
-        raise
-
-    except Exception as e:
-        logger.exception(f"Unexpected error: {e}")
-        raise SystemExit(1)
 
 
 if __name__ == "__main__":

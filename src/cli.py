@@ -30,6 +30,8 @@ examples:
   python main.py --format csv                      Export results as CSV (default)
   python main.py --webhook-url "https://..."       Send Teams alert if carriers fail
   python main.py --format html                     Export results as HTML dashboard
+  python main.py --watch 5                         Re-run every 5 minutes (Ctrl+C to stop)
+  python main.py --watch 1 --verbose               Watch mode with verbose output
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -123,6 +125,16 @@ examples:
         default=None,
         metavar="URL",
         help="Teams webhook URL for notifications. If not set, no notification is sent.",
+    )
+
+
+# ---- NOUVEAU : --watch ----
+    parser.add_argument(
+        "-W", "--watch",
+        type=int,
+        default=None,
+        metavar="MINUTES",
+        help="Watch mode: re-run health checks every N minutes. Ctrl+C to stop.",
     )
 
 
